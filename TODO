@@ -1,0 +1,37 @@
+[Persistence]
+* generate dlls ready for proxying for teams
+* registry
+* startup folder
+* junction folder
+
+[TUI]
+https://github.com/fdehau/tui-rs
+
+[Link]
+- cargo fetch deps first then cargo build --offline
+- add private/public key encryption for transport inside TLS
+- make jitter and delay adjustable
+- add execute assembly
+- add evasion
+- add process injection
+
+[Link Modules]
+- Add powershell modules from empire
+    - all powershell modules should take advantage of xeca
+- execute-assembly then you could use sharpcollection, add function that clones sharpcollection
+- https://github.com/PorLaCola25/TransactedSharpMiniDump for reference
+
+[Compile obfuscation]
+User the following projects for implementation
+- https://github.com/tsarpaul/llvm-string-obfuscator
+- https://github.com/moloch--/denim
+
+[Server]
+- launch server from cli
+- add other transports
+- add xeca as a generate option
+- add autocompletion
+- allow links to be removed from links list
+
+[Code]
+- make it nicer and clean up some repetition
