@@ -149,7 +149,7 @@ fn shell(args: Vec<&str>) -> String {
             String::from_utf8(output.stdout).unwrap(), 
             String::from_utf8(output.stderr).unwrap()))
         },
-        Err(_) => return String::from("command not found"),
+        Err(e) => return format!("{}", e),
     }
 }
 
@@ -168,7 +168,7 @@ fn command_spawn(args: Vec<&str>) -> String {
             String::from_utf8(output.stdout).unwrap(), 
             String::from_utf8(output.stderr).unwrap()))
         },
-        Err(_) => return String::from("command not found"),
+        Err(e) => return format!("{}", e),
     }
 }
 
@@ -180,11 +180,14 @@ fn powershell(args: Vec<&str>) -> String {
     let output = std::process::Command::new("powershell")
         .args(&["-noP", "-sta", "-w", "1", command_string.as_str()])
         .creation_flags(winapi::um::winbase::CREATE_NO_WINDOW)
-        .output()
-        .expect("Could not execute");
-    String::from(format!("{}{}", 
-        String::from_utf8(output.stdout).unwrap(), 
-        String::from_utf8(output.stderr).unwrap()))
+        .output();
+    match output {
+        Ok(output) => { return String::from(format!("{}{}", 
+            String::from_utf8(output.stdout).unwrap(), 
+            String::from_utf8(output.stderr).unwrap()))
+        },
+        Err(e) => return format!("{}", e),
+    }
 }
 
 fn ls(args: Vec<&str>) -> String {
