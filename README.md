@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  link is a command and control framework written in rust. Currently in __alpha__.
+  link is a command and control framework written in rust. Currently in **alpha**.
 </p>
 
 <p align="center">
