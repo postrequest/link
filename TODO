@@ -9,11 +9,10 @@ https://github.com/fdehau/tui-rs
 
 [Link]
 - cargo fetch deps first then cargo build --offline
+    - perform build on windows first then unpack that, does it need to be compiled with gnu toolchain resulting in bloated binary?
 - add private/public key encryption for transport inside TLS
 - make jitter and delay adjustable
-- add execute assembly
 - add evasion
-- add process injection
 
 [Link Modules]
 - Add powershell modules from empire
@@ -31,7 +30,7 @@ User the following projects for implementation
 - add other transports
 - add xeca as a generate option
 - add autocompletion
-- allow links to be removed from links list
+- links to be removed from list if not Active unless requested with -a, also update status of links at a regular interval
 
 [Code]
 - make it nicer and clean up some repetition

@@ -197,7 +197,7 @@ pub async fn link_poll(callback: web::Json<Callback>, http_req: web::HttpRequest
                 tasks::write_task_to_stdout(&mut cli_handle, 
                     link_name,
                     links[link_index].tasks.tasks[i as usize].id.to_string(),
-                    links[link_index].tasks.tasks[i as usize].command.clone(),
+                    links[link_index].tasks.tasks[i as usize].cli_command.clone(),
                     &returned_data,
                 );
                 // add new x-request-id
