@@ -61,10 +61,7 @@ link is currently not even in __beta__, but fo feel free to [file an issue](http
 A non-exhaustive list of those who have in some way contributed by means of writing code, snippets, ideas or inspiration:
 
 [@rust](https://github.com/rust-lang)
-
 [@moloch--](https://github.com/moloch--)
-
 [@djhohnstein](https://github.com/djhohnstein)
-
 [@lesnuages](https://github.com/lesnuages)
 
