@@ -71,6 +71,15 @@ impl Link {
         self.last_checkin = Local::now();
     }
 
+    pub fn check_status(&mut self) {
+        let now = Local::now().timestamp();
+        let most_recent = self.last_checkin.timestamp();
+        let diff = now - most_recent;
+        if diff > 90 {
+            self.status = LinkStatus::Inactive;
+        }
+    }
+
     pub fn set_name(&mut self, name: String) {
         self.name = name;
     }
@@ -81,11 +90,11 @@ impl Link {
         new_uuid.to_string()
     }
 
-    pub fn set_command(&mut self, command_to_execute: String, cli_command: String) {
+    pub fn set_command(&mut self, command_to_execute: String, raw_command: String) {
         let task = tasks::Task {
             id:             uuid::Uuid::new_v4(),
             command:        command_to_execute,
-            cli_command:    cli_command,
+            cli_command:    raw_command,
             status:         TaskStatus::Waiting,
             output:         "".to_string(),
         };

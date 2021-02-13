@@ -58,7 +58,7 @@ link is currently not even in __beta__, but fo feel free to [file an issue](http
 
 ## Acknowledgments
 
-A non-exhaustive list of those who have in some way contributed by means of writing code, snippets, ideas or inspiration:
+A non-exhaustive list of those who have in some way inspired this project by means of writing code, snippets, ideas or inspiration:
 
 [@rust](https://github.com/rust-lang)  
 [@moloch--](https://github.com/moloch--)  

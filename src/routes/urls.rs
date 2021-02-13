@@ -139,7 +139,13 @@ pub async fn link_poll(callback: web::Json<Callback>, http_req: web::HttpRequest
     // check q parameter in query
     let returned_data = callback.q.clone();
     let returned_task_id = callback.tasking.clone();
-    let mut links = data.links.lock().unwrap();
+    let mut links = match data.links.lock() {
+        Err(_)      => return HttpResponse::Ok().body(""),
+        Ok(links)   => links,
+    };
+    if links.len() == 0 {
+        return HttpResponse::Ok().body("")
+    }
     let mut link_index: usize = 0;
     
     // search for link

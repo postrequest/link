@@ -276,7 +276,11 @@ fn links_list(links: web::Data<Links>) {
     println!("----------------------------------|-------|----------|------------------------------|---------------|--------------------------------------|--------");
     for i in 0..count {
         let iu = i as usize;
-        let tmp = links.links.lock().unwrap();
+        let mut tmp = links.links.lock().unwrap();
+        tmp[iu].check_status();
+        if tmp[iu].status != server::links::LinkStatus::Active {
+            continue
+        }
         println!(" {:2} | {:4?} | {:8} | {:29} | {:13} | {:35} | {:?} ", 
                  tmp[iu].name,
                  tmp[iu].link_type,
