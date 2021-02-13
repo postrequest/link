@@ -115,18 +115,25 @@ impl Link {
                         TaskStatus::InProgress  => {
                             self.tasks.tasks[task_index].status = TaskStatus::Completed;
                             self.status = LinkStatus::Exited;
+                            self.remove_task(task_index);
                             // TODO
                             // send link kill to stdout
                             break
                         },
-                        TaskStatus::Completed   => self.tasks.tasks[task_index].status = TaskStatus::Completed,
+                        // TODO
+                        // log output file
+                        // remote task from memory
+                        TaskStatus::Completed   => self.remove_task(task_index),
                     }
                 }
                 // match and update
                 match status {
                     TaskStatus::Waiting     => self.tasks.tasks[task_index].status = TaskStatus::Waiting,
                     TaskStatus::InProgress  => self.tasks.tasks[task_index].status = TaskStatus::InProgress,
-                    TaskStatus::Completed   => self.tasks.tasks[task_index].status = TaskStatus::Completed,
+                    // TODO
+                    // log output file
+                    // remote task from memory
+                    TaskStatus::Completed   => self.remove_task(task_index),
                 }
                 break;
             }

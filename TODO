@@ -8,8 +8,6 @@
 https://github.com/fdehau/tui-rs
 
 [Link]
-- cargo fetch deps first then cargo build --offline
-    - perform build on windows first then unpack that, does it need to be compiled with gnu toolchain resulting in bloated binary?
 - add private/public key encryption for transport inside TLS
 - make jitter and delay adjustable
 - add evasion
