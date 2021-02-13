@@ -10,6 +10,7 @@ edition = "2018"
 lto = true
 opt-level = 's'
 panic = 'abort'
+codegen-units = 1
 
 [features]
 dangerous_configuration = ["rustls/dangerous_configuration"]
