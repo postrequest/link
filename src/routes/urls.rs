@@ -190,7 +190,6 @@ pub async fn link_poll(callback: web::Json<Callback>, http_req: web::HttpRequest
         } else {
             if links[link_index].tasks.tasks[i as usize].id.to_string() == returned_task_id {
                 links[link_index].tasks.tasks[i as usize].output = returned_data.clone();
-                links[link_index].update_task_status(TaskStatus::Completed, returned_task_id);
                 // print task output to stdout
                 let cli_stdout = data.stdout.lock().unwrap();
                 let mut cli_handle = cli_stdout.lock();
@@ -206,6 +205,7 @@ pub async fn link_poll(callback: web::Json<Callback>, http_req: web::HttpRequest
                     links[link_index].tasks.tasks[i as usize].cli_command.clone(),
                     &returned_data,
                 );
+                links[link_index].update_task_status(TaskStatus::Completed, returned_task_id);
                 // add new x-request-id
                 let new_x_request_id = links[link_index].set_x_request_id();
                 let task = Task {
