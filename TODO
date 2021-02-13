@@ -13,9 +13,10 @@ https://github.com/fdehau/tui-rs
 - add evasion
 
 [Link Modules]
-- Add powershell modules from empire
+- add powershell modules from empire
     - all powershell modules should take advantage of xeca
 - https://github.com/PorLaCola25/TransactedSharpMiniDump for reference
+- add link-psinject, injects link into process
 
 [Compile obfuscation]
 User the following projects for implementation
