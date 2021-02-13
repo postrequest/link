@@ -15,7 +15,6 @@ https://github.com/fdehau/tui-rs
 [Link Modules]
 - Add powershell modules from empire
     - all powershell modules should take advantage of xeca
-- execute-assembly then you could use sharpcollection, add function that clones sharpcollection
 - https://github.com/PorLaCola25/TransactedSharpMiniDump for reference
 
 [Compile obfuscation]

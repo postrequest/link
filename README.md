@@ -45,6 +45,7 @@ Hopefully this list expands for humans to actually want to use this:
 * HTTPS communication
 * Process injection
 * In-memory .NET assembly execution
+* SharpCollection tools
 
 ## Feedback
 
@@ -64,4 +65,5 @@ A non-exhaustive list of those who have in some way inspired this project by mea
 [@moloch--](https://github.com/moloch--)  
 [@djhohnstein](https://github.com/djhohnstein)  
 [@lesnuages](https://github.com/lesnuages)  
+[@Flangvik](https://github.com/Flangvik)  
 

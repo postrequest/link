@@ -82,9 +82,14 @@ pub fn generate(args: Vec<String>) {
         "fn main(){{println!(\"cargo:rustc-env=CALLBACK={}\");}}",
         args[1],
     );
+    // set up link directory
+    let home_dir = match std::env::var("HOME") {
+        Err(e)      => { println!("{}", e); return},
+        Ok(home)    => home,
+    };
     let prev_dir_path = std::env::current_dir().unwrap();
-    let link_dir_path = "/tmp/link_current";
-    let link_exec_path = "/tmp/link_current/target/x86_64-pc-windows-gnu/release/link.exe";
+    let link_dir_path = &format!("{}/.link/link", home_dir);
+    let link_exec_path = &format!("{}/.link/link/target/x86_64-pc-windows-gnu/release/link.exe", home_dir);
     let link_dir_src_path = format!("{}/src", link_dir_path);
     let dest_link_path = format!("{}/link.exe", prev_dir_path.clone().display());
     // check for first build

@@ -54,6 +54,7 @@ fn main_help() {
     println!("  generate    generate link");
     println!("  links       links menu");
     println!("  kill        stop the web server");
+    println!("  sharp       generate link");
     println!("  help        this help menu");
     println!("  exit        exits link server");
 }
@@ -79,6 +80,8 @@ pub async fn main_loop() {
     } else {
         args[0].clone() 
     };
+    // initiate
+    util::sharp::create_link_dir();
     // spawn server
     let _ = tx_command.send(std::io::stdout());
     let links = server::server::spawn_server(&tx, &rx_command, bind_addr).await;
@@ -96,6 +99,7 @@ pub async fn main_loop() {
 					"generate"  => util::generate::generate(args),
 					"links"     => links_loop(links.clone(), args),
 					"kill"      => srv.stop(true).await,
+					"sharp"     => util::sharp::sharpcollection_manage(args),
                     // add are you sure y/N
 					"help"      => main_help(),
 					"exit"      => std::process::exit(0),
@@ -138,7 +142,7 @@ fn links_menu_help() {
     println!("  bypass-uac          bypass UAC");
     println!("  mimikatz            ala mimikatz");
     println!("  psinject            process injection");
-    println!("  sharpkatz           ala sharpkatz");
+    println!("  sharp               SharpCollection tools");
     println!("  sassykitdi          ala sassykitdi");
     println!("  cmd                 execute command directly from process");
     println!("  shell               execute command via cmd.exe");
@@ -217,7 +221,7 @@ fn links_loop(links: web::Data<Links>, args: Vec<String>) {
                     "bypass-uac"        => println!("todo"),
                     "psinject"          => util::nonstd::process_inject(links.clone(), link_index, args),
                     "mimikatz"          => link_command(links.clone(), link_index, args),
-                    "sharpkatz"         => println!("todo"),
+                    "sharp"             => util::sharp::sharp_link(links.clone(), link_index, args),
                     "sassykitdi"        => println!("Ring0 link only"),
                     "cmd"               => link_command(links.clone(), link_index, args),
                     "shell"             => link_command(links.clone(), link_index, args),
