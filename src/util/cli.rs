@@ -124,6 +124,7 @@ pub async fn main_loop() {
 fn links_help() {
 	println!("links [switch] <argument>");
     println!("  -h    help");
+    println!("  -a    show all links");
     println!("  -i    interact with link (eg: link -i 1)");
     println!("  -k    kill link");
 }
@@ -161,7 +162,7 @@ fn link_info(links: web::Data<Links>, link_index: usize) {
 
 fn links_loop(links: web::Data<Links>, args: Vec<String>) {
 	if args.len() == 1 {
-		links_list(links);
+		links_list(links, false);
 		return
 	}
 	// parse args
@@ -169,6 +170,7 @@ fn links_loop(links: web::Data<Links>, args: Vec<String>) {
     let target_link: String;
 	match args[1].as_str() {
 		"-h" => { links_help(); return },
+		"-a" => { links_list(links, true); return },
 		"-i" => target_link = args[2].to_string(),
 		"-k" => target_link = args[2].to_string(),
 		_	 => { links_help(); return },
@@ -262,7 +264,7 @@ fn link_command(links: web::Data<Links>, link_index: usize, command: Vec<String>
     links.links.lock().unwrap()[link_index].set_command(command.join(" "), command.join(" "));
 }
 
-fn links_list(links: web::Data<Links>) {
+fn links_list(links: web::Data<Links>, all: bool) {
     let count = *links.count.lock().unwrap();
     if count == 0 {
         println!("No links.");
@@ -278,8 +280,10 @@ fn links_list(links: web::Data<Links>) {
         let iu = i as usize;
         let mut tmp = links.links.lock().unwrap();
         tmp[iu].check_status();
-        if tmp[iu].status != server::links::LinkStatus::Active {
-            continue
+        if !all {
+            if tmp[iu].status != server::links::LinkStatus::Active {
+                continue
+            }
         }
         println!(" {:2} | {:4?} | {:8} | {:29} | {:13} | {:35} | {:?} ", 
                  tmp[iu].name,

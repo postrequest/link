@@ -30,7 +30,6 @@ User the following projects for implementation
 - add other transports
 - add xeca as a generate option
 - add autocompletion
-- links to be removed from list if not Active unless requested with -a, also update status of links at a regular interval
 
 [Code]
 - make it nicer and clean up some repetition
