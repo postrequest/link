@@ -115,6 +115,7 @@ pub fn generate(args: Vec<String>) {
     println!("please wait...");
     let output = std::process::Command::new("cargo")
         .args(&["build", "--release", "--target", "x86_64-pc-windows-gnu"])
+        .env("RUSTFLAGS", "-C link-arg=-s")
         .output();
     match output {
         Err(e)  => println!("{}", e),
