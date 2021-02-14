@@ -168,7 +168,7 @@ pub fn generate(args: Vec<String>) {
         .output();
     match output {
         Err(e) => println!("{}", e),
-        Ok(_) => println!("link succesfully built"),
+        Ok(_) => println!("link successfully built"),
     }
     // return to previous path
     if std::env::set_current_dir(prev_dir_path.clone()).is_err() {
