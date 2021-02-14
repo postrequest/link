@@ -74,7 +74,7 @@ pub async fn main_loop() {
             println!("not ready it seems?\nexiting...");
             std::process::exit(0);
         }
-        _ => println!("wahh? starting server anyways"),
+        _ => (),
     }
     // get bind address
     args = util::cli::cli_line("Please provide bind address (eg: 0.0.0.0:443): ");
