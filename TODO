@@ -8,9 +8,9 @@
 https://github.com/fdehau/tui-rs
 
 [Link]
-- add private/public key encryption for transport inside TLS
 - make jitter and delay adjustable
 - add evasion
+- add DoubleRatchet transport inside HTTPS https://github.com/sebastianv89/double-ratchet
 
 [Link Modules]
 - add powershell modules from empire
@@ -28,6 +28,7 @@ User the following projects for implementation
 - add other transports
 - add xeca as a generate option
 - add autocompletion
+- add DoubleRatchet transport inside HTTPS https://github.com/sebastianv89/double-ratchet
 
 [Code]
 - make it nicer and clean up some repetition
