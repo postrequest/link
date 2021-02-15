@@ -97,6 +97,14 @@ pub fn generate(args: Vec<String>) {
         "{}",
         String::from_utf8_lossy(include_bytes!("../link/src/main.rs"))
     );
+    let link_lib = format!(
+        "{}",
+        String::from_utf8_lossy(include_bytes!("../link/src/lib.rs"))
+    );
+    let stdlib = format!(
+        "{}",
+        String::from_utf8_lossy(include_bytes!("../link/src/stdlib.rs"))
+    );
     let nonstd = format!(
         "{}",
         String::from_utf8_lossy(include_bytes!("../link/src/nonstd.rs"))
@@ -145,6 +153,14 @@ pub fn generate(args: Vec<String>) {
     let mut output_file = fs::File::create("./src/main.rs").expect("could not write file");
     output_file
         .write_all(main.as_bytes())
+        .expect("could not write contents to output file");
+    output_file = fs::File::create("./src/lib.rs").expect("could not write file");
+    output_file
+        .write_all(link_lib.as_bytes())
+        .expect("could not write contents to output file");
+    output_file = fs::File::create("./src/stdlib.rs").expect("could not write file");
+    output_file
+        .write_all(stdlib.as_bytes())
         .expect("could not write contents to output file");
     output_file = fs::File::create("./src/nonstd.rs").expect("could not write file");
     output_file
