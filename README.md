@@ -56,6 +56,8 @@ link is currently not even in __beta__, but fo feel free to [file an issue](http
 - `cargo run` if you are eager to run it **right now**
 - `cargo build --release` to build the link server executable
 
+For more information checkout [Installation and Usage](https://github.com/postrequest/link/wiki/Installation-and-Usage).
+
 ## Acknowledgments
 
 A non-exhaustive list of those who have in some way inspired this project by means of writing code, snippets, ideas or inspiration:
