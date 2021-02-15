@@ -144,6 +144,7 @@ fn links_menu_help() {
     println!("  persist             persistence modules");
     println!("  bypass-uac          bypass UAC");
     println!("  mimikatz            ala mimikatz");
+    println!("  link-inject         inject link into process");
     println!("  psinject            process injection");
     println!("  sharp               SharpCollection tools");
     println!("  sassykitdi          ala sassykitdi");
@@ -233,6 +234,7 @@ fn links_loop(links: web::Data<Links>, args: Vec<String>) {
                     // junction folders, startup and registry
                     "persist" => println!("todo"),
                     "bypass-uac" => println!("todo"),
+                    "link-inject" => util::nonstd::link_inject(links.clone(), link_index, args),
                     "psinject" => util::nonstd::process_inject(links.clone(), link_index, args),
                     "mimikatz" => link_command(links.clone(), link_index, args),
                     "sharp" => util::sharp::sharp_link(links.clone(), link_index, args),

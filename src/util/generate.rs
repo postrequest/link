@@ -215,6 +215,5 @@ pub fn generate(args: Vec<String>) {
     output_file
         .write_all(&link_shellcode)
         .expect("could not write contents to output file");
-    println!("shellcode created");
     println!("output: link.bin");
 }

