@@ -45,6 +45,7 @@ Hopefully this list expands for humans to actually want to use this:
 * Process injection
 * In-memory .NET assembly execution
 * SharpCollection tools
+* sRDI implementation for shellcode generation
 
 ## Feedback
 
@@ -67,4 +68,5 @@ A non-exhaustive list of those who have in some way inspired this project by mea
 [@djhohnstein](https://github.com/djhohnstein)  
 [@lesnuages](https://github.com/lesnuages)  
 [@Flangvik](https://github.com/Flangvik)  
+[@monoxgas](https://github.com/monoxgas)  
 
