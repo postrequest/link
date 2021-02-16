@@ -24,7 +24,7 @@ pub fn link_inject(links: web::Data<Links>, link_index: usize, command: Vec<Stri
     };
     let shellcode_b64 = base64::encode(shellcode);
     let mut updated_command = command.clone();
-    updated_command[0] = "psinject".to_string();
+    updated_command[0] = "inject".to_string();
     updated_command.push(shellcode_b64);
     links.links.lock().unwrap()[link_index]
         .set_command(updated_command.join(" "), command.join(" "));
@@ -32,7 +32,7 @@ pub fn link_inject(links: web::Data<Links>, link_index: usize, command: Vec<Stri
 
 pub fn process_inject(links: web::Data<Links>, link_index: usize, command: Vec<String>) {
     if command.len() < 3 {
-        println!("pinject <pid> <path-to-shellcode>\n   eg: pinject 1307 /tmp/shellcode.bin");
+        println!("inject <pid> <path-to-shellcode>\n   eg: inject 1307 /tmp/shellcode.bin");
         return;
     }
     let shellcode = match std::fs::read(command[2].clone()) {

