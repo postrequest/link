@@ -6,20 +6,6 @@ use std::time::Duration;
 use std::thread;
 use std::thread::sleep;
 
-pub fn empire(args: Vec<&str>) -> String {
-    if args.len() < 2 {
-        return "todo".to_string()
-    }
-    return "todo".to_string()
-}
-
-pub fn mimikatz(args: Vec<&str>) -> String {
-    if args.len() < 2 {
-        return "todo".to_string()
-    }
-    return "todo".to_string()
-}
-
 pub fn process_injection(args: Vec<&str>) -> String {
     if args.len() < 2 {
         return "please specify PID".to_string()

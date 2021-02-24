@@ -113,8 +113,6 @@ fn link_command(command: String) -> String {
     match args[0] {
         "execute-assembly"  => nonstd::execute_assembly(args),
         "inject"            => nonstd::process_injection(args),
-        "empire"            => nonstd::empire(args),
-        "mimikatz"          => nonstd::mimikatz(args),
         "cmd"               => command_spawn(args),
         "shell"             => shell(args),
         "powershell"        => powershell(args),

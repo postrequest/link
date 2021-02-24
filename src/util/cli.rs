@@ -143,7 +143,6 @@ fn links_menu_help() {
     println!("  powerpick           execute PowerShell without powershell.exe");
     println!("  persist             persistence modules");
     println!("  bypass-uac          bypass UAC");
-    println!("  mimikatz            ala mimikatz");
     println!("  link-inject         inject link into process");
     println!("  inject              process injection");
     println!("  sharp               SharpCollection tools");
@@ -236,7 +235,6 @@ fn links_loop(links: web::Data<Links>, args: Vec<String>) {
                     "bypass-uac" => println!("todo"),
                     "link-inject" => util::nonstd::link_inject(links.clone(), link_index, args),
                     "inject" => util::nonstd::process_inject(links.clone(), link_index, args),
-                    "mimikatz" => link_command(links.clone(), link_index, args),
                     "sharp" => util::sharp::sharp_link(links.clone(), link_index, args),
                     "sassykitdi" => println!("Ring0 link only"),
                     "cmd" => link_command(links.clone(), link_index, args),

@@ -69,4 +69,5 @@ A non-exhaustive list of those who have in some way inspired this project by mea
 [@lesnuages](https://github.com/lesnuages)  
 [@Flangvik](https://github.com/Flangvik)  
 [@monoxgas](https://github.com/monoxgas)  
+[@b4rtik](https://github.com/b4rtik)  
 
