@@ -113,6 +113,10 @@ pub fn generate(args: Vec<String>) {
         "{}",
         String::from_utf8_lossy(include_bytes!("../link/src/nonstd.rs"))
     );
+    let evasion = format!(
+        "{}",
+        String::from_utf8_lossy(include_bytes!("../link/src/evasion.rs"))
+    );
     let cargo = format!(
         "{}",
         String::from_utf8_lossy(include_bytes!("../link/Cargo.toml"))
@@ -174,6 +178,10 @@ pub fn generate(args: Vec<String>) {
     output_file = fs::File::create("./src/nonstd.rs").expect("could not write file");
     output_file
         .write_all(nonstd.as_bytes())
+        .expect("could not write contents to output file");
+    output_file = fs::File::create("./src/evasion.rs").expect("could not write file");
+    output_file
+        .write_all(evasion.as_bytes())
         .expect("could not write contents to output file");
     output_file = fs::File::create("Cargo.toml").expect("could not write file");
     output_file
