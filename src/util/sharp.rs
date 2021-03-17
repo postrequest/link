@@ -60,6 +60,7 @@ pub fn get_sharp_path(tool: String) -> String {
     sharp_collection.insert("SharpHose", format!("{}/{}.exe", net45_path, tool));
     sharp_collection.insert("SharpHound3", format!("{}/{}.exe", net40_path, tool));
     sharp_collection.insert("SharpKatz", format!("{}/{}.exe", net40_path, tool));
+    sharp_collection.insert("SharpLAPS", format!("{}/{}.exe", net40_path, tool));
     sharp_collection.insert("SharpMapExec", format!("{}/{}.exe", net40_path, tool));
     sharp_collection.insert("SharpMiniDump", format!("{}/{}.exe", net40_path, tool));
     sharp_collection.insert("SharpMove", format!("{}/{}.exe", net40_path, tool));
@@ -258,6 +259,7 @@ pub fn sharp_link_help() {
         "  sharp SharpHound3                 C# Rewrite of the BloodHound Ingestor. @BloodHoundAD"
     );
     println!("  sharp SharpKatz                   PURE C# port of significant MimiKatz functionality such as logonpasswords, dcsync, etc. @b4rtik");
+    println!("  sharp SharpLAPS                   A C# tool to retrieve LAPS passwords from LDAP @pentest_swissky");
     println!("  sharp SharpMapExec                C# version of @byt3bl33d3r's tool CrackMapExec @cube0x0");
     println!("  sharp SharpMiniDump               C# tool to Create a minidump of the LSASS process from memory @b4rtik");
     println!("  sharp SharpMove                   C# tool for performing lateral movement techniques @0xthirteen");
