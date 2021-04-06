@@ -7,7 +7,7 @@ sudo apt install -y librust-openssl-dev
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source $HOME/.cargo/env
 
-# pr
+# add target and config
 rustup target add x86_64-pc-windows-gnu
 cat > ~/.cargo/config << EOF
 [target.x86_64-pc-windows-gnu]
