@@ -99,27 +99,27 @@ pub fn generate(args: Vec<String>) {
     // rs files
     let main = format!(
         "{}",
-        String::from_utf8_lossy(include_bytes!("../link/src/main.rs"))
+        String::from_utf8_lossy(include_bytes!("../links/windows/src/main.rs"))
     );
     let link_lib = format!(
         "{}",
-        String::from_utf8_lossy(include_bytes!("../link/src/lib.rs"))
+        String::from_utf8_lossy(include_bytes!("../links/windows/src/lib.rs"))
     );
     let stdlib = format!(
         "{}",
-        String::from_utf8_lossy(include_bytes!("../link/src/stdlib.rs"))
+        String::from_utf8_lossy(include_bytes!("../links/windows/src/stdlib.rs"))
     );
     let nonstd = format!(
         "{}",
-        String::from_utf8_lossy(include_bytes!("../link/src/nonstd.rs"))
+        String::from_utf8_lossy(include_bytes!("../links/windows/src/nonstd.rs"))
     );
     let evasion = format!(
         "{}",
-        String::from_utf8_lossy(include_bytes!("../link/src/evasion.rs"))
+        String::from_utf8_lossy(include_bytes!("../links/windows/src/evasion.rs"))
     );
     let cargo = format!(
         "{}",
-        String::from_utf8_lossy(include_bytes!("../link/Cargo.toml"))
+        String::from_utf8_lossy(include_bytes!("../links/windows/Cargo.toml"))
     );
     let build = format!(
         "fn main(){{println!(\"cargo:rustc-env=CALLBACK={}\");}}",
@@ -134,13 +134,13 @@ pub fn generate(args: Vec<String>) {
         Ok(home) => home,
     };
     let prev_dir_path = std::env::current_dir().unwrap();
-    let link_dir_path = &format!("{}/.link/link", home_dir);
+    let link_dir_path = &format!("{}/.link/links/windows", home_dir);
     let link_exec_path = &format!(
-        "{}/.link/link/target/x86_64-pc-windows-gnu/release/link.exe",
+        "{}/.link/links/windows/target/x86_64-pc-windows-gnu/release/link.exe",
         home_dir
     );
     let link_dll_path = &format!(
-        "{}/.link/link/target/x86_64-pc-windows-gnu/release/link.dll",
+        "{}/.link/links/windows/target/x86_64-pc-windows-gnu/release/link.dll",
         home_dir
     );
     let link_dir_src_path = format!("{}/src", link_dir_path);

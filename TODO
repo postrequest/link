@@ -1,4 +1,4 @@
-[Persistence]
+[Windows Persistence]
 * generate dlls ready for proxying for teams
 * registry
 * startup folder
@@ -9,13 +9,14 @@ https://github.com/fdehau/tui-rs
 
 [Link]
 - make jitter and delay adjustable
-- add evasion
+- add evasion PPID spoofer for windows
 
 [Link Modules]
 - add powershell modules from empire
     - all powershell modules should take advantage of xeca
-- https://github.com/PorLaCola25/TransactedSharpMiniDump for reference
-- add link-psinject, injects link into process
+- https://github.com/PorLaCola25/TransactedSharpMiniDump for reference, also https://github.com/m0rv4i/SafetyDump
+- add https://github.com/deadjakk/RustPivot/
+- add https://github.com/RedCursorSecurityConsulting/PPLKiller
 
 [Compile obfuscation]
 User the following projects for implementation
@@ -24,9 +25,14 @@ User the following projects for implementation
 
 [Server]
 - launch server from cli
-- add other transports
+- add other transports such as DNS
 - add xeca as a generate option
 - add autocompletion
+- add https://github.com/deadjakk/RustPivot/
 
 [Code]
 - make it nicer and clean up some repetition
+
+[Build]
+- Add deps install with kali in build.rs for seamless build from scratch, or from server cli
+

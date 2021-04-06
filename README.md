@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  link is a command and control framework written in rust. Currently in <strong>alpha</strong>.
+  link is a command and control framework written in rust. Currently in <strong>beta</strong>.
 </p>
 
 <p align="center">
@@ -46,10 +46,11 @@ Hopefully this list expands for humans to actually want to use this:
 * In-memory .NET assembly execution
 * SharpCollection tools
 * sRDI implementation for shellcode generation
+* Windows link reloads DLLs from disk into current process
 
 ## Feedback
 
-link is currently not even in __beta__, but fo feel free to [file an issue](https://github.com/postrequest/link/issues/new).
+Feel free to [file an issue](https://github.com/postrequest/link/issues/new).
 
 ## Build Process
 

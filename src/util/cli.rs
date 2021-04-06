@@ -226,7 +226,7 @@ fn links_loop(links: web::Data<Links>, args: Vec<String>) {
                     "execute-assembly" => {
                         util::nonstd::execute_assembly(links.clone(), link_index, args)
                     }
-                    "execute-pe" => println!("todo"),
+                    "execute-pe" => util::nonstd::execute_pe(links.clone(), link_index, args),
                     "powerpick" => println!("todo"),
                     // have pre generated DLLs for dropping
                     // teams and other programs commonly used

