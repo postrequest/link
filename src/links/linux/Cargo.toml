@@ -1,0 +1,25 @@
+[package]
+name = "link"
+version = "0.1.0"
+authors = ["postrequest"]
+edition = "2018"
+doc = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[profile.release]
+lto = true
+opt-level = 's'
+panic = 'abort'
+codegen-units = 1
+
+[features]
+dangerous_configuration = ["rustls/dangerous_configuration"]
+
+[dependencies]
+reqwest = { version = "0.10", features = ["blocking", "cookies", "json"] }
+rustls = "0.19.0"
+serde = "1.0.118"
+webpki = "0.21.4"
+base64 = "0.13.0"
+obfstr = "0.3"

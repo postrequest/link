@@ -225,3 +225,97 @@ pub fn generate(args: Vec<String>) {
         .expect("could not write contents to output file");
     println!("output: link.bin");
 }
+
+pub fn generate_linux(args: Vec<String>) {
+    if args.len() == 1 {
+        generate_help();
+        return;
+    }
+    // rs files
+    let main = format!(
+        "{}",
+        String::from_utf8_lossy(include_bytes!("../links/linux/src/main.rs"))
+    );
+    let stdlib = format!(
+        "{}",
+        String::from_utf8_lossy(include_bytes!("../links/linux/src/stdlib.rs"))
+    );
+    let cargo = format!(
+        "{}",
+        String::from_utf8_lossy(include_bytes!("../links/linux/Cargo.toml"))
+    );
+    let build = format!(
+        "fn main(){{println!(\"cargo:rustc-env=CALLBACK={}\");}}",
+        args[1],
+    );
+    // set up link directory
+    let home_dir = match std::env::var("HOME") {
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+        Ok(home) => home,
+    };
+    let prev_dir_path = std::env::current_dir().unwrap();
+    let link_dir_path = &format!("{}/.link/links/linux", home_dir);
+    let link_exec_path = &format!(
+        "{}/.link/links/linux/target/release/link",
+        home_dir
+    );
+    let link_dir_src_path = format!("{}/src", link_dir_path);
+    let dest_link_path = format!("{}/link", prev_dir_path.clone().display());
+    // check for first build
+    if fs::metadata(link_dir_path).is_err() {
+        println!("first link build will take time");
+    }
+    // create temp directory and change dir
+    match fs::create_dir_all(link_dir_src_path) {
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+        Ok(link_dir) => link_dir,
+    };
+    if std::env::set_current_dir(link_dir_path).is_err() {
+        println!("could not change directory");
+        return;
+    }
+    // write files to link dir
+    let mut output_file = fs::File::create("./src/main.rs").expect("could not write file");
+    output_file
+        .write_all(main.as_bytes())
+        .expect("could not write contents to output file");
+    output_file = fs::File::create("./src/stdlib.rs").expect("could not write file");
+    output_file
+        .write_all(stdlib.as_bytes())
+        .expect("could not write contents to output file");
+    output_file = fs::File::create("Cargo.toml").expect("could not write file");
+    output_file
+        .write_all(cargo.as_bytes())
+        .expect("could not write contents to output file");
+    output_file = fs::File::create("build.rs").expect("could not write file");
+    output_file
+        .write_all(build.as_bytes())
+        .expect("could not write contents to output file");
+    // create link executable
+    println!("please wait...");
+    let output = std::process::Command::new("cargo")
+        .args(&["build", "--release"])
+        .env("RUSTFLAGS", "-C link-arg=-s")
+        .output();
+    match output {
+        Err(e) => println!("{}", e),
+        Ok(_) => println!("link successfully built"),
+    }
+    // return to previous path
+    if std::env::set_current_dir(prev_dir_path.clone()).is_err() {
+        println!("could not change back to previous directory");
+        return;
+    }
+    // copy files to current dir
+    let link_copy = fs::copy(link_exec_path, dest_link_path);
+    match link_copy {
+        Err(e) => println!("{}", e),
+        Ok(_) => println!("output: link"),
+    }
+}

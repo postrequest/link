@@ -100,6 +100,7 @@ pub async fn main_loop() {
                 args = get_string_vec(line);
                 match args[0].as_str() {
                     "generate" => util::generate::generate(args),
+                    "generate-linux" => util::generate::generate_linux(args),
                     "links" => links_loop(links.clone(), args),
                     "kill" => srv.stop(true).await,
                     "sharp" => util::sharp::sharpcollection_manage(args),
