@@ -260,7 +260,7 @@ pub fn generate_linux(args: Vec<String>) {
     let prev_dir_path = std::env::current_dir().unwrap();
     let link_dir_path = &format!("{}/.link/links/linux", home_dir);
     let link_exec_path = &format!(
-        "{}/.link/links/linux/target/release/link",
+        "{}/.link/links/linux/target/x86_64-unknown-linux-musl/release/link",
         home_dir
     );
     let link_dir_src_path = format!("{}/src", link_dir_path);
