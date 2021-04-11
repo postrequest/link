@@ -184,7 +184,7 @@ fn cd(args: Vec<&str>) -> String {
 
 fn internal_ip() -> String {
     // thanks https://github.com/egmkang/local_ipaddress/
-    let non_routable = "not internet routable machine".to_string();
+    let non_routable = "127.0.0.1".to_string();
     use std::net::UdpSocket;
     let socket = match UdpSocket::bind("0.0.0.0:0") {
         Ok(s) => s,
