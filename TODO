@@ -35,4 +35,4 @@ User the following projects for implementation
 
 [Build]
 - Add deps install with kali in build.rs for seamless build from scratch, or from server cli
-
+- for kali 'apt install mono-mcs' for dynamic powershell scripts 

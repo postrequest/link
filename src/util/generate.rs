@@ -1,6 +1,7 @@
 use std::fs;
 use std::io::prelude::*;
 use util::shellcode;
+use util::sharp::git_exists;
 
 // internal packages
 use crate::util;
@@ -150,7 +151,7 @@ pub fn generate(args: Vec<String>) {
     if fs::metadata(link_dir_path).is_err() {
         println!("first link build will take time");
     }
-    // create temp directory and change dir
+    // create directory and change dir
     match fs::create_dir_all(link_dir_src_path) {
         Err(e) => {
             println!("{}", e);
@@ -268,7 +269,7 @@ pub fn generate_linux(args: Vec<String>) {
     if fs::metadata(link_dir_path).is_err() {
         println!("first link build will take time");
     }
-    // create temp directory and change dir
+    // create directory and change dir
     match fs::create_dir_all(link_dir_src_path) {
         Err(e) => {
             println!("{}", e);
@@ -319,3 +320,177 @@ pub fn generate_linux(args: Vec<String>) {
         Ok(_) => println!("output: link"),
     }
 }
+
+pub fn build_osx_sdk() {
+    if git_exists() == false {
+        println!("could not download osxcross");
+        return
+    }
+    let home_dir = match std::env::var("HOME") {
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+        Ok(home) => home,
+    };
+    let prev_dir_path = std::env::current_dir().unwrap();
+    let link_third_party_path = &format!("{}/.link/3rdparty", home_dir);
+    // create directory and change dir
+    match fs::create_dir_all(link_third_party_path) {
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+        Ok(link_dir) => link_dir,
+    };
+    if std::env::set_current_dir(link_third_party_path).is_err() {
+        println!("could not change directory");
+        return;
+    }
+    // clone and build osxcross
+    let output = std::process::Command::new("git")
+        .args(&["clone", "https://github.com/tpoechtrager/osxcross"])
+        .output();
+    match output {
+        Err(e) => println!("{}", e),
+        Ok(_) => println!("osxcross cloned"),
+    }
+    if std::env::set_current_dir("./osxcross/tarballs").is_err() {
+        println!("could not change directory");
+        return;
+    }
+    let output = std::process::Command::new("wget")
+        .args(&["https://s3.dockerproject.org/darwin/v2/MacOSX10.11.sdk.tar.xz"])
+        .output();
+    match output {
+        Err(e) => println!("{}", e),
+        Ok(_) => println!("OSX 10.11 SDK downloaded"),
+    }
+    if std::env::set_current_dir("..").is_err() {
+        println!("could not change directory");
+        return;
+    }
+    let output = std::process::Command::new("sed")
+        .args(&["-i", "-e", "'s|-march=native||g'", "build_clang.sh", "wrapper/build_wrapper.sh"])
+        .output();
+    match output {
+        Err(e) => println!("{}", e),
+        Ok(_) => println!("updated clang build"),
+    }
+    println!("building osxcross... this will take a while");
+    let output = std::process::Command::new("./build.sh")
+        .env("UNATTENDED", "yes")
+        .env("OSX_VERSION_MIN", "10.7")
+        .output();
+    match output {
+        Err(e) => println!("{}", e),
+        Ok(_) => println!("osxcross built"),
+    }
+    // return to previous path
+    if std::env::set_current_dir(prev_dir_path.clone()).is_err() {
+        println!("could not change back to previous directory");
+        return;
+    }
+}
+
+pub fn generate_osx(args: Vec<String>) {
+    if args.len() == 1 {
+        generate_help();
+        return;
+    }
+    // rs files
+    let main = format!(
+        "{}",
+        String::from_utf8_lossy(include_bytes!("../links/osx/src/main.rs"))
+    );
+    let stdlib = format!(
+        "{}",
+        String::from_utf8_lossy(include_bytes!("../links/osx/src/stdlib.rs"))
+    );
+    let cargo = format!(
+        "{}",
+        String::from_utf8_lossy(include_bytes!("../links/osx/Cargo.toml"))
+    );
+    let build = format!(
+        "fn main(){{println!(\"cargo:rustc-env=CALLBACK={}\");}}",
+        args[1],
+    );
+    // set up link directory
+    let home_dir = match std::env::var("HOME") {
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+        Ok(home) => home,
+    };
+    let prev_dir_path = std::env::current_dir().unwrap();
+    let link_third_party_path = &format!("{}/.link/3rdparty", home_dir);
+    let osx_clang_path = &format!("{}/osxcross/target/bin/x86_64-apple-darwin15-clang", link_third_party_path);
+    let osx_ar_path = &format!("{}/osxcross/target/bin/x86_64-apple-darwin15-ar", link_third_party_path);
+    let link_dir_path = &format!("{}/.link/links/osx", home_dir);
+    let link_exec_path = &format!(
+        "{}/.link/links/osx/target/x86_64-apple-darwin/release/link",
+        home_dir
+    );
+    let link_dir_src_path = format!("{}/src", link_dir_path);
+    let dest_link_path = format!("{}/link", prev_dir_path.clone().display());
+    // check for first build
+    if fs::metadata(link_dir_path).is_err() {
+        println!("first osx link build will take time");
+        println!("building osx cross compilation dependencies");
+        build_osx_sdk();
+    }
+    // create directory and change dir
+    match fs::create_dir_all(link_dir_src_path) {
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+        Ok(link_dir) => link_dir,
+    };
+    if std::env::set_current_dir(link_dir_path).is_err() {
+        println!("could not change directory");
+        return;
+    }
+    // write files to link dir
+    let mut output_file = fs::File::create("./src/main.rs").expect("could not write file");
+    output_file
+        .write_all(main.as_bytes())
+        .expect("could not write contents to output file");
+    output_file = fs::File::create("./src/stdlib.rs").expect("could not write file");
+    output_file
+        .write_all(stdlib.as_bytes())
+        .expect("could not write contents to output file");
+    output_file = fs::File::create("Cargo.toml").expect("could not write file");
+    output_file
+        .write_all(cargo.as_bytes())
+        .expect("could not write contents to output file");
+    output_file = fs::File::create("build.rs").expect("could not write file");
+    output_file
+        .write_all(build.as_bytes())
+        .expect("could not write contents to output file");
+    // create link executable
+    println!("please wait...");
+    let output = std::process::Command::new("cargo")
+        .args(&["build", "--release", "--target", "x86_64-apple-darwin"])
+        .env("RUSTFLAGS", "-C link-arg=-s")
+        .env("TARGET_CC", osx_clang_path)
+        .env("TARGET_AR", osx_ar_path)
+        .output();
+    match output {
+        Err(e) => println!("{}", e),
+        Ok(_) => println!("link successfully built"),
+    }
+    // return to previous path
+    if std::env::set_current_dir(prev_dir_path.clone()).is_err() {
+        println!("could not change back to previous directory");
+        return;
+    }
+    // copy files to current dir
+    let link_copy = fs::copy(link_exec_path, dest_link_path);
+    match link_copy {
+        Err(e) => println!("{}", e),
+        Ok(_) => println!("output: link"),
+    }
+}
+

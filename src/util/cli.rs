@@ -101,6 +101,7 @@ pub async fn main_loop() {
                 match args[0].as_str() {
                     "generate" => util::generate::generate(args),
                     "generate-linux" => util::generate::generate_linux(args),
+                    "generate-osx" => util::generate::generate_osx(args),
                     "links" => links_loop(links.clone(), args),
                     "kill" => srv.stop(true).await,
                     "sharp" => util::sharp::sharpcollection_manage(args),

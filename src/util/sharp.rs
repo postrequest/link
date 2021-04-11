@@ -120,7 +120,7 @@ pub fn create_link_dir() {
         Ok(home) => home,
     }
 }
-fn git_exists() -> bool {
+pub fn git_exists() -> bool {
     if std::process::Command::new("git")
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
