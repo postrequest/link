@@ -1,10 +1,11 @@
 #!/bin/bash
 
 # install dependencies
-# windows
-sudo apt install -y mingw-w64
 sudo apt install -y libssl-dev
 sudo apt install -y librust-openssl-dev
+sudo apt install -y musl-tools
+# windows
+sudo apt install -y mingw-w64
 # osx
 sudo apt install -y cmake
 sudo apt install -y libxml2-dev
@@ -12,6 +13,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source $HOME/.cargo/env
 
 # add target and config
+rustup target add x86_64-unkown-linux-musl
 # windows
 rustup target add x86_64-pc-windows-gnu
 cat > ~/.cargo/config << EOF

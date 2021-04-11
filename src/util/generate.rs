@@ -301,7 +301,7 @@ pub fn generate_linux(args: Vec<String>) {
     // create link executable
     println!("please wait...");
     let output = std::process::Command::new("cargo")
-        .args(&["build", "--release"])
+        .args(&["build", "--release", "--target", "x86_64-unknown-linux-musl"])
         .env("RUSTFLAGS", "-C link-arg=-s")
         .output();
     match output {
