@@ -46,7 +46,7 @@ pub fn link_loop() {
     let register_link = RegisterLink {
             link_username: username(),
             link_hostname: hostname(),
-            internal_ip: internal_ip().unwrap(),
+            internal_ip: internal_ip(),
             external_ip: String::new(),
             platform: std::env::consts::OS.to_string(),
             pid: pid(),
@@ -196,20 +196,21 @@ fn hostname() -> String {
     }
 }
 
-fn internal_ip() -> Option<String> {
+fn internal_ip() -> String {
     // thanks https://github.com/egmkang/local_ipaddress/
+    let non_routable = "not internet routable machine".to_string();
     use std::net::UdpSocket;
     let socket = match UdpSocket::bind("0.0.0.0:0") {
         Ok(s) => s,
-        Err(_) => return None,
+        Err(_) => return non_routable,
     };
     match socket.connect("8.8.8.8:80") {
         Ok(()) => (),
-        Err(_) => return None,
+        Err(_) => return non_routable,
     };
     match socket.local_addr() {
-        Ok(addr) => return Some(addr.ip().to_string()),
-        Err(_) => return None,
+        Ok(addr) => return addr.ip().to_string(),
+        Err(_) => return non_routable,
     };
 }
 
