@@ -13,7 +13,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source $HOME/.cargo/env
 
 # add target and config
-rustup target add x86_64-unkown-linux-musl
+rustup target add x86_64-unknown-linux-musl
 # windows
 rustup target add x86_64-pc-windows-gnu
 cat > ~/.cargo/config << EOF
