@@ -170,7 +170,6 @@ fn links_menu_help() {
 fn links_menu_help_nix() {
     println!("Link commands:");
     println!("  persist             persistence modules");
-    println!("  shell               execute command via cmd.exe");
     println!("  cd                  change directory");
     println!("  pwd                 print working directory");
     println!("  ls                  list directory");
