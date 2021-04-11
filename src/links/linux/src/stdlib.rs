@@ -10,6 +10,7 @@ pub struct RegisterLink {
     pub link_hostname:     String,
     pub internal_ip:        String,
     pub external_ip:        String,
+    pub platform:        String,
     pub pid:                u32,
 }
 
@@ -47,6 +48,7 @@ pub fn link_loop() {
             link_hostname: hostname(),
             internal_ip: internal_ip().unwrap(),
             external_ip: String::new(),
+            platform: std::env::consts::OS.to_string(),
             pid: pid(),
     };
     let mut uresp: reqwest::blocking::Response;

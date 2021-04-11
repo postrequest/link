@@ -1,7 +1,7 @@
 use std::fs;
 use std::io::prelude::*;
-use util::shellcode;
 use util::sharp::git_exists;
+use util::shellcode;
 
 // internal packages
 use crate::util;
@@ -301,7 +301,12 @@ pub fn generate_linux(args: Vec<String>) {
     // create link executable
     println!("please wait...");
     let output = std::process::Command::new("cargo")
-        .args(&["build", "--release", "--target", "x86_64-unknown-linux-musl"])
+        .args(&[
+            "build",
+            "--release",
+            "--target",
+            "x86_64-unknown-linux-musl",
+        ])
         .env("RUSTFLAGS", "-C link-arg=-s")
         .output();
     match output {
@@ -324,7 +329,7 @@ pub fn generate_linux(args: Vec<String>) {
 pub fn build_osx_sdk() {
     if git_exists() == false {
         println!("could not download osxcross");
-        return
+        return;
     }
     let home_dir = match std::env::var("HOME") {
         Err(e) => {
@@ -371,7 +376,13 @@ pub fn build_osx_sdk() {
         return;
     }
     let output = std::process::Command::new("sed")
-        .args(&["-i", "-e", "'s|-march=native||g'", "build_clang.sh", "wrapper/build_wrapper.sh"])
+        .args(&[
+            "-i",
+            "-e",
+            "'s|-march=native||g'",
+            "build_clang.sh",
+            "wrapper/build_wrapper.sh",
+        ])
         .output();
     match output {
         Err(e) => println!("{}", e),
@@ -425,8 +436,14 @@ pub fn generate_osx(args: Vec<String>) {
     };
     let prev_dir_path = std::env::current_dir().unwrap();
     let link_third_party_path = &format!("{}/.link/3rdparty", home_dir);
-    let osx_clang_path = &format!("{}/osxcross/target/bin/x86_64-apple-darwin15-clang", link_third_party_path);
-    let osx_ar_path = &format!("{}/osxcross/target/bin/x86_64-apple-darwin15-ar", link_third_party_path);
+    let osx_clang_path = &format!(
+        "{}/osxcross/target/bin/x86_64-apple-darwin15-clang",
+        link_third_party_path
+    );
+    let osx_ar_path = &format!(
+        "{}/osxcross/target/bin/x86_64-apple-darwin15-ar",
+        link_third_party_path
+    );
     let link_dir_path = &format!("{}/.link/links/osx", home_dir);
     let link_exec_path = &format!(
         "{}/.link/links/osx/target/x86_64-apple-darwin/release/link",
@@ -493,4 +510,3 @@ pub fn generate_osx(args: Vec<String>) {
         Ok(_) => println!("output: link"),
     }
 }
-

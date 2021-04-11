@@ -53,7 +53,7 @@ impl Link {
             x_request_id: init_uuid,
             // this implementation will need to change once KM link is working
             link_type: LinkType::Ring3,
-            platform: "windows".to_string(),
+            platform: "".to_string(),
             architecture: "x86_64".to_string(),
             link_username: "".to_string(),
             link_hostname: "".to_string(),

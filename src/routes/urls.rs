@@ -14,6 +14,7 @@ pub struct RegisterLink {
     pub link_hostname: String,
     pub internal_ip: String,
     pub external_ip: String,
+    pub platform: String,
     pub pid: u32,
 }
 
@@ -103,6 +104,7 @@ pub async fn link_register(
     new.link_hostname = query.link_hostname.clone();
     new.internal_ip = query.internal_ip.clone();
     new.external_ip = "not yet do via google||microsoft".to_string();
+    new.platform = query.platform.clone();
     new.pid = query.pid.clone();
     // already a guard on this header but good practice
     // get user_agent

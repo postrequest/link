@@ -272,7 +272,7 @@ fn links_loop(links: web::Data<Links>, args: Vec<String>) {
                         } else {
                             links_menu_help_nix();
                         }
-                    },
+                    }
                     "?" => links_menu_help(),
                     "info" => link_info(links.clone(), link_index),
                     "back" => return,
