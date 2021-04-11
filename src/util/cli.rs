@@ -51,12 +51,14 @@ fn get_string_vec(s: String) -> Vec<String> {
 
 fn main_help() {
     println!("help");
-    println!("  generate    generate link");
-    println!("  links       links menu");
-    println!("  kill        stop the web server");
-    println!("  sharp       generate link");
-    println!("  help        this help menu");
-    println!("  exit        exits link server");
+    println!("  generate            generate link");
+    println!("  generate-linux      generate link targetting linux");
+    println!("  generate-osx        generate link targetting osx");
+    println!("  links               links menu");
+    println!("  kill                stop the web server");
+    println!("  sharp               generate link");
+    println!("  help                this help menu");
+    println!("  exit                exits link server");
 }
 
 pub async fn main_loop() {
@@ -165,6 +167,22 @@ fn links_menu_help() {
     println!("  back                main menu");
 }
 
+fn links_menu_help_nix() {
+    println!("Link commands:");
+    println!("  persist             persistence modules");
+    println!("  shell               execute command via cmd.exe");
+    println!("  cd                  change directory");
+    println!("  pwd                 print working directory");
+    println!("  ls                  list directory");
+    println!("  pid                 print PID");
+    println!("  whoami              whoami");
+    println!("  kill                exit link");
+    println!("  help                show help");
+    println!("  ?                   show help");
+    println!("  info                show info");
+    println!("  back                main menu");
+}
+
 fn link_info(links: web::Data<Links>, link_index: usize) {
     println!("{:#?}", links.links.lock().unwrap()[link_index])
 }
@@ -209,9 +227,6 @@ fn links_loop(links: web::Data<Links>, args: Vec<String>) {
         return;
     }
 
-    // TODO
-    // check for interactive or kill
-
     let mut rl = Editor::<()>::new();
     let _ = rl.load_history(".protocol-history.txt");
     let link_prompt = format!("({}) 🔗 > ", target_link.clone());
@@ -250,7 +265,14 @@ fn links_loop(links: web::Data<Links>, args: Vec<String>) {
                     "integrity" => link_command(links.clone(), link_index, args),
                     // do a check on this before exiting link
                     "kill" => link_command(links.clone(), link_index, vec!["exit".to_string()]),
-                    "help" => links_menu_help(),
+                    "help" => {
+                        let platform = links.links.lock().unwrap()[link_index].platform.clone();
+                        if platform == "windows" {
+                            links_menu_help();
+                        } else {
+                            links_menu_help_nix();
+                        }
+                    },
                     "?" => links_menu_help(),
                     "info" => link_info(links.clone(), link_index),
                     "back" => return,
