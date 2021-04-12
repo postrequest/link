@@ -11,6 +11,7 @@ https://github.com/fdehau/tui-rs
 [Link]
 - make jitter and delay adjustable
 - add evasion PPID spoofer for windows
+- make use of evasion from https://github.com/f0rb1dd3n/Reptile for linux link
 
 [Link Modules]
 - add powershell modules from empire

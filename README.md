@@ -33,7 +33,7 @@
 [![Lines of code](https://img.shields.io/tokei/lines/github/postrequest/link)](https://img.shields.io/tokei/lines/github/postrequest/link)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPLv3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.en.html)
 
-At this stage of development, link provides a Windows implant only which lacks evasive tradecraft provided by other more mature command and control frameworks.
+link provides MacOS, Linux and Windows implants which may lack the necessary evasive tradecraft provided by other more mature command and control frameworks.
 
 **Tested on Linux only.**
 
