@@ -52,8 +52,8 @@ fn get_string_vec(s: String) -> Vec<String> {
 fn main_help() {
     println!("help");
     println!("  generate            generate link");
-    println!("  generate-linux      generate link targetting linux");
-    println!("  generate-osx        generate link targetting osx");
+    println!("  generate-linux      generate link targeting linux");
+    println!("  generate-osx        generate link targeting osx");
     println!("  links               links menu");
     println!("  kill                stop the web server");
     println!("  sharp               generate link");
