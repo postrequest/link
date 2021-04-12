@@ -3,6 +3,7 @@
 * registry
 * startup folder
 * junction folder
+* COM scheduled task: similar to COM hijack but you are not actually hijacking an existing COM object, but instead implementing and registering your own
 
 [TUI]
 https://github.com/fdehau/tui-rs
@@ -29,10 +30,10 @@ User the following projects for implementation
 - add xeca as a generate option
 - add autocompletion
 - add https://github.com/deadjakk/RustPivot/
+- accept dynamic hostnames
 
 [Code]
-- make it nicer and clean up some repetition
+- clean up repetition
 
 [Build]
-- Add deps install with kali in build.rs for seamless build from scratch, or from server cli
 - for kali 'apt install mono-mcs' for dynamic powershell scripts 

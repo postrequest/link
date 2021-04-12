@@ -36,14 +36,14 @@ pub fn cli_line(prompt: &str) -> Vec<String> {
     if let Some('\r') = s.chars().next_back() {
         s.pop();
     }
-    if s.len() == 0 {
+    if s.is_empty() {
         return vec![String::from("")];
     }
     get_string_vec(s)
 }
 
 fn get_string_vec(s: String) -> Vec<String> {
-    if s.len() == 0 {
+    if s.is_empty() {
         return vec![String::from("")];
     }
     s.split_whitespace().map(str::to_string).collect()
@@ -89,7 +89,7 @@ pub async fn main_loop() {
     util::sharp::create_link_dir();
     // spawn server
     let _ = tx_command.send(std::io::stdout());
-    let links = server::server::spawn_server(&tx, &rx_command, bind_addr).await;
+    let links = server::spawn::spawn_server(&tx, &rx_command, bind_addr).await;
     let srv = rx.recv().unwrap();
 
     let mut rl = Editor::<()>::new();
@@ -213,7 +213,7 @@ fn links_loop(links: web::Data<Links>, args: Vec<String>) {
     // check if link exists
     let mut link_exists = false;
     let mut link_index: usize = 0;
-    let link_count = links.count.lock().unwrap().clone() as usize;
+    let link_count = *links.count.lock().unwrap() as usize;
     for i in 0..link_count {
         if links.links.lock().unwrap()[i as usize].name == target_link {
             link_exists = true;
@@ -228,7 +228,7 @@ fn links_loop(links: web::Data<Links>, args: Vec<String>) {
 
     let mut rl = Editor::<()>::new();
     let _ = rl.load_history(".protocol-history.txt");
-    let link_prompt = format!("({}) 🔗 > ", target_link.clone());
+    let link_prompt = format!("({}) 🔗 > ", target_link);
     loop {
         // print task output
         // perform asyncronously, dependent on
@@ -295,12 +295,10 @@ fn links_loop(links: web::Data<Links>, args: Vec<String>) {
 }
 
 fn link_command(links: web::Data<Links>, link_index: usize, command: Vec<String>) {
-    if command.len() > 1 {
-        if command[1] == "-h" {
-            // match command help
-            println!("{} help", command[0]);
-            return;
-        }
+    if command.len() > 1 && command[1] == "-h" {
+        // match command help
+        println!("{} help", command[0]);
+        return;
     }
     links.links.lock().unwrap()[link_index].set_command(command.join(" "), command.join(" "));
 }
@@ -321,10 +319,8 @@ fn links_list(links: web::Data<Links>, all: bool) {
         let iu = i as usize;
         let mut tmp = links.links.lock().unwrap();
         tmp[iu].check_status();
-        if !all {
-            if tmp[iu].status != server::links::LinkStatus::Active {
-                continue;
-            }
+        if !all && tmp[iu].status != server::links::LinkStatus::Active {
+            continue;
         }
         println!(
             " {:2} | {:4?} | {:8} | {:29} | {:13} | {:35} | {:?} ",

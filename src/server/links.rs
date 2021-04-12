@@ -39,12 +39,18 @@ pub struct Link {
     pub tasks: tasks::Tasks,
 }
 
+impl Default for Link {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Link {
     pub fn new() -> Link {
         let init_uuid = uuid::Uuid::new_v4();
         let link_name: String = uuid::Uuid::new_v4()
             .to_string()
-            .split("-")
+            .split('-')
             .map(str::to_string)
             .collect();
         Link {

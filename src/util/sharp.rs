@@ -91,7 +91,7 @@ pub fn get_sharp_path(tool: String) -> String {
     sharp_collection.insert("WMIReg", format!("{}/{}.exe", net40_path, tool));
     // check if path exists
     let full_path = match sharp_collection.get(tool.as_str()) {
-        Some(full_path) => format!("{}", full_path),
+        Some(full_path) => full_path.to_string(),
         None => return "".to_string(),
     };
     if fs::metadata(full_path.clone()).is_err() {
@@ -115,7 +115,6 @@ pub fn create_link_dir() {
     match fs::create_dir_all(link_dir.as_str()) {
         Err(e) => {
             println!("{}", e);
-            return;
         }
         Ok(home) => home,
     }
@@ -134,7 +133,7 @@ pub fn git_exists() -> bool {
 }
 
 fn update_sharpcollection() {
-    if git_exists() == false {
+    if !git_exists() {
         println!("could not download SharpCollection");
         return;
     }
@@ -159,14 +158,13 @@ fn update_sharpcollection() {
         Ok(_) => println!("updated"),
     }
     // return to previous path
-    if std::env::set_current_dir(prev_dir_path.clone()).is_err() {
+    if std::env::set_current_dir(prev_dir_path).is_err() {
         println!("could not change back to previous directory");
-        return;
     }
 }
 
 fn download_sharpcollection() {
-    if git_exists() == false {
+    if !git_exists() {
         println!("could not download SharpCollection");
         return;
     }
@@ -196,9 +194,8 @@ fn download_sharpcollection() {
         println!("downloaded");
     }
     // return to previous path
-    if std::env::set_current_dir(prev_dir_path.clone()).is_err() {
+    if std::env::set_current_dir(prev_dir_path).is_err() {
         println!("could not change back to previous directory");
-        return;
     }
 }
 
@@ -207,7 +204,7 @@ pub fn sharpcollection_manage(command: Vec<String>) {
         sharp_help();
         return;
     }
-    if command[1] == "init".to_string() {
+    if command[1] == *"init" {
         download_sharpcollection();
         return;
     }

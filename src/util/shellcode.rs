@@ -2,7 +2,7 @@ use byteorder::{ByteOrder, LittleEndian, ReadBytesExt};
 use std::io::prelude::*;
 use std::{fs, path, process};
 
-pub fn is_64bit_dll(dll: &Vec<u8>) -> bool {
+pub fn is_64bit_dll(dll: &[u8]) -> bool {
     const MACHINE_IA64: u16 = 512;
     const MACHINE_AMD64: u16 = 34404;
     let mut buf: &[u8] = &dll[60..64];
@@ -29,15 +29,14 @@ pub fn hash_function_name(name: &str) -> u32 {
         function_hash = ror(function_hash, 13, 32);
         function_hash += *byte as u32;
     }
-
-    return function_hash;
+    function_hash
 }
 
 // function similar to struct.pack from python3
 pub fn pack(val: u32) -> [u8; 4] {
     let mut bytes = [0; 4];
     LittleEndian::write_u32(&mut bytes, val);
-    return bytes;
+    bytes
 }
 
 pub fn shellcode_rdi(dll_path: &str, function_name: &str, user_data: String) -> Vec<u8> {
@@ -54,11 +53,11 @@ pub fn shellcode_rdi(dll_path: &str, function_name: &str, user_data: String) -> 
         let hash_function_u32 = hash_function_name(&function_name);
         hash_function = pack(hash_function_u32);
     } else {
-        hash_function = pack(0x10 as u32);
+        hash_function = pack(0x10_u32);
     }
     let mut flags = 0;
     if clear_header {
-        flags = 0 | 0x1;
+        flags = 0x1;
     }
     convert_to_shellcode(dll, hash_function, user_data.into_bytes(), flags)
 }
@@ -74,11 +73,11 @@ pub fn shellcode_rdi_from_bytes(
         let hash_function_u32 = hash_function_name(&function_name);
         hash_function = pack(hash_function_u32);
     } else {
-        hash_function = pack(0x10 as u32);
+        hash_function = pack(0x10_u32);
     }
     let mut flags = 0;
     if clear_header {
-        flags = 0 | 0x1;
+        flags = 0x1;
     }
     convert_to_shellcode(dll_bytes, hash_function, user_data.into_bytes(), flags)
 }
@@ -353,7 +352,7 @@ pub fn convert_to_shellcode(
         0xC0, 0x48, 0x8B, 0x5C, 0x24, 0x20, 0x48, 0x8B, 0x74, 0x24, 0x28, 0x48, 0x83, 0xC4, 0x10,
         0x5F, 0xC3,
     ];
-    let user_data = if user_data_.len() == 0 {
+    let user_data = if user_data_.is_empty() {
         "None".as_bytes().to_vec()
     } else {
         user_data_

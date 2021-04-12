@@ -85,7 +85,7 @@ fn generate_has_dependencies() -> bool {
         println!("rustup target add x86_64-pc-windows-gnu");
         return false;
     }
-    return true;
+    true
 }
 
 pub fn generate(args: Vec<String>) {
@@ -94,7 +94,7 @@ pub fn generate(args: Vec<String>) {
         return;
     }
     // check for dependencies
-    if generate_has_dependencies() == false {
+    if !generate_has_dependencies() {
         return;
     }
     // rs files
@@ -145,8 +145,8 @@ pub fn generate(args: Vec<String>) {
         home_dir
     );
     let link_dir_src_path = format!("{}/src", link_dir_path);
-    let dest_link_path = format!("{}/link.exe", prev_dir_path.clone().display());
-    let dest_link_dll_path = format!("{}/link.dll", prev_dir_path.clone().display());
+    let dest_link_path = format!("{}/link.exe", prev_dir_path.display());
+    let dest_link_dll_path = format!("{}/link.dll", prev_dir_path.display());
     // check for first build
     if fs::metadata(link_dir_path).is_err() {
         println!("first link build will take time");
@@ -203,7 +203,7 @@ pub fn generate(args: Vec<String>) {
         Ok(_) => println!("link successfully built"),
     }
     // return to previous path
-    if std::env::set_current_dir(prev_dir_path.clone()).is_err() {
+    if std::env::set_current_dir(prev_dir_path).is_err() {
         println!("could not change back to previous directory");
         return;
     }
@@ -264,7 +264,7 @@ pub fn generate_linux(args: Vec<String>) {
         home_dir
     );
     let link_dir_src_path = format!("{}/src", link_dir_path);
-    let dest_link_path = format!("{}/link", prev_dir_path.clone().display());
+    let dest_link_path = format!("{}/link", prev_dir_path.display());
     // check for first build
     if fs::metadata(link_dir_path).is_err() {
         println!("first link build will take time");
@@ -314,7 +314,7 @@ pub fn generate_linux(args: Vec<String>) {
         Ok(_) => println!("link successfully built"),
     }
     // return to previous path
-    if std::env::set_current_dir(prev_dir_path.clone()).is_err() {
+    if std::env::set_current_dir(prev_dir_path).is_err() {
         println!("could not change back to previous directory");
         return;
     }
@@ -327,7 +327,7 @@ pub fn generate_linux(args: Vec<String>) {
 }
 
 pub fn build_osx_sdk() {
-    if git_exists() == false {
+    if !git_exists() {
         println!("could not download osxcross");
         return;
     }
@@ -398,9 +398,8 @@ pub fn build_osx_sdk() {
         Ok(_) => println!("osxcross built"),
     }
     // return to previous path
-    if std::env::set_current_dir(prev_dir_path.clone()).is_err() {
+    if std::env::set_current_dir(prev_dir_path).is_err() {
         println!("could not change back to previous directory");
-        return;
     }
 }
 
@@ -450,7 +449,7 @@ pub fn generate_osx(args: Vec<String>) {
         home_dir
     );
     let link_dir_src_path = format!("{}/src", link_dir_path);
-    let dest_link_path = format!("{}/link", prev_dir_path.clone().display());
+    let dest_link_path = format!("{}/link", prev_dir_path.display());
     // check for first build
     if fs::metadata(link_dir_path).is_err() {
         println!("first osx link build will take time");
@@ -499,7 +498,7 @@ pub fn generate_osx(args: Vec<String>) {
         Ok(_) => println!("link successfully built"),
     }
     // return to previous path
-    if std::env::set_current_dir(prev_dir_path.clone()).is_err() {
+    if std::env::set_current_dir(prev_dir_path).is_err() {
         println!("could not change back to previous directory");
         return;
     }

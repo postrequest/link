@@ -59,10 +59,10 @@ pub fn execute_assembly(links: web::Data<Links>, link_index: usize, mut command:
     }
     // check for SharpCollection
     let mut sharpcollection_tool = String::new();
-    if command[0] == "sharp".to_string() {
+    if command[0] == *"sharp" {
         sharpcollection_tool = command[1].clone();
         let tool_path = util::sharp::get_sharp_path(command[1].clone());
-        if tool_path == "".to_string() {
+        if tool_path.is_empty() {
             println!("could not find tool, at the main menu the following command may help:");
             println!("sharp init");
             return;
@@ -71,8 +71,7 @@ pub fn execute_assembly(links: web::Data<Links>, link_index: usize, mut command:
         command[1] = tool_path;
     }
     // 0 name
-    let mut updated_command: Vec<String> = Vec::new();
-    updated_command.push(command[0].clone());
+    let mut updated_command: Vec<String> = vec![command[0].clone()];
     // 1 assembly
     let assembly = match std::fs::read(command[1].clone()) {
         Err(e) => {
@@ -97,7 +96,7 @@ pub fn execute_assembly(links: web::Data<Links>, link_index: usize, mut command:
     updated_command.extend_from_slice(&command[2..]);
 
     // update original command if SharpCollection
-    if sharpcollection_tool.len() > 0 {
+    if !sharpcollection_tool.is_empty() {
         command[0] = "sharp".to_string();
         command[1] = sharpcollection_tool;
     }

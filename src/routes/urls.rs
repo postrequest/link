@@ -105,7 +105,7 @@ pub async fn link_register(
     new.internal_ip = query.internal_ip.clone();
     new.external_ip = "not yet do via google||microsoft".to_string();
     new.platform = query.platform.clone();
-    new.pid = query.pid.clone();
+    new.pid = query.pid;
     // already a guard on this header but good practice
     // get user_agent
     let user_agent = http_req.headers().get("user-agent");
@@ -190,7 +190,7 @@ pub async fn link_poll(
     for i in 0..tasks_in_queue {
         // if task id assign its index with one
         // provide link with command to execute FIFO
-        if returned_task_id == "" {
+        if returned_task_id.is_empty() {
             // find first task in queue waiting to be executed
             if links[link_index].tasks.tasks[i as usize].status == TaskStatus::Waiting {
                 // add new x-request-id
@@ -207,38 +207,36 @@ pub async fn link_poll(
                 return HttpResponse::Ok().json(task);
             }
         // data returned from task on link
-        } else {
-            if links[link_index].tasks.tasks[i as usize].id.to_string() == returned_task_id {
-                links[link_index].tasks.tasks[i as usize].output = returned_data.clone();
-                // print task output to stdout
-                let cli_stdout = data.stdout.lock().unwrap();
-                let mut cli_handle = cli_stdout.lock();
-                let link_name = format!(
-                    "{} ({}\\{}@{})",
-                    links[link_index].name,
-                    links[link_index].link_hostname,
-                    links[link_index].link_username,
-                    links[link_index].internal_ip,
-                );
-                tasks::write_task_to_stdout(
-                    &mut cli_handle,
-                    link_name,
-                    links[link_index].tasks.tasks[i as usize].id.to_string(),
-                    links[link_index].tasks.tasks[i as usize]
-                        .cli_command
-                        .clone(),
-                    &returned_data,
-                );
-                links[link_index].update_task_status(TaskStatus::Completed, returned_task_id);
-                // add new x-request-id
-                let new_x_request_id = links[link_index].set_x_request_id();
-                let task = Task {
-                    tasking: String::new(),
-                    q: String::new(),
-                    x_request_id: new_x_request_id,
-                };
-                return HttpResponse::Ok().json(task);
-            }
+        } else if links[link_index].tasks.tasks[i as usize].id.to_string() == returned_task_id {
+            links[link_index].tasks.tasks[i as usize].output = returned_data.clone();
+            // print task output to stdout
+            let cli_stdout = data.stdout.lock().unwrap();
+            let mut cli_handle = cli_stdout.lock();
+            let link_name = format!(
+                "{} ({}\\{}@{})",
+                links[link_index].name,
+                links[link_index].link_hostname,
+                links[link_index].link_username,
+                links[link_index].internal_ip,
+            );
+            tasks::write_task_to_stdout(
+                &mut cli_handle,
+                link_name,
+                links[link_index].tasks.tasks[i as usize].id.to_string(),
+                links[link_index].tasks.tasks[i as usize]
+                    .cli_command
+                    .clone(),
+                &returned_data,
+            );
+            links[link_index].update_task_status(TaskStatus::Completed, returned_task_id);
+            // add new x-request-id
+            let new_x_request_id = links[link_index].set_x_request_id();
+            let task = Task {
+                tasking: String::new(),
+                q: String::new(),
+                x_request_id: new_x_request_id,
+            };
+            return HttpResponse::Ok().json(task);
         }
     }
 
