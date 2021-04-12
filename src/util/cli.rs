@@ -4,6 +4,9 @@ use rustyline::Editor;
 use server::links::Links;
 use std::sync::mpsc;
 
+use prettytable::Table;
+use prettytable::format;
+
 // internal packages
 use crate::server;
 use crate::util;
@@ -313,8 +316,13 @@ fn links_list(links: web::Data<Links>, all: bool) {
     } else {
         println!("\n[{} Links]\n", count);
     }
-    println!(" id                               | type  | platform | who                          | internal ip   | last checkin                         | status ");
-    println!("----------------------------------|-------|----------|------------------------------|---------------|--------------------------------------|--------");
+
+    // create table
+    let mut table = Table::new();
+    table.set_format(*format::consts::FORMAT_NO_BORDER);
+    table.add_row(row!["id", "type", "platform", "who", "internal ip", "last checkin", "status"]);
+    
+    // add links
     for i in 0..count {
         let iu = i as usize;
         let mut tmp = links.links.lock().unwrap();
@@ -322,16 +330,16 @@ fn links_list(links: web::Data<Links>, all: bool) {
         if !all && tmp[iu].status != server::links::LinkStatus::Active {
             continue;
         }
-        println!(
-            " {:2} | {:4?} | {:8} | {:29} | {:13} | {:35} | {:?} ",
+        table.add_row(row![
             tmp[iu].name,
-            tmp[iu].link_type,
+            format!("{:?}", tmp[iu].link_type),
             tmp[iu].platform,
             format!("{}\\{}", tmp[iu].link_hostname, tmp[iu].link_username),
             tmp[iu].internal_ip,
             tmp[iu].last_checkin,
-            tmp[iu].status,
-        );
+            format!("{:?}", tmp[iu].status),
+        ]);
     }
+    table.printstd();
     println!();
 }
