@@ -32,6 +32,7 @@
 [![Repo Size](https://img.shields.io/github/repo-size/postrequest/link)](https://img.shields.io/github/repo-size/postrequest/link)
 [![Lines of code](https://img.shields.io/tokei/lines/github/postrequest/link)](https://img.shields.io/tokei/lines/github/postrequest/link)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPLv3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.en.html)
+[![Rust Report Card](https://rust-reportcard.xuri.me/badge/github.com/postrequest/link)](https://rust-reportcard.xuri.me/report/github.com/postrequest/link)
 
 link provides MacOS, Linux and Windows implants which may lack the necessary evasive tradecraft provided by other more mature command and control frameworks.
 
@@ -58,7 +59,7 @@ Feel free to [file an issue](https://github.com/postrequest/link/issues/new).
 - `cargo run` if you are eager to run it **right now**
 - `cargo build --release` to build the link server executable
 
-For more information checkout [Installation and Usage](https://github.com/postrequest/link/wiki/Installation-and-Usage).
+For more information check out [Installation and Usage](https://github.com/postrequest/link/wiki/Installation-and-Usage).
 
 ## Acknowledgments
 
