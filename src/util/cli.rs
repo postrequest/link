@@ -4,8 +4,7 @@ use rustyline::Editor;
 use server::links::Links;
 use std::sync::mpsc;
 
-use prettytable::Table;
-use prettytable::format;
+use prettytable::{format, Table};
 
 // internal packages
 use crate::server;
@@ -332,12 +331,12 @@ fn links_list(links: web::Data<Links>, all: bool) {
         }
         table.add_row(row![
             tmp[iu].name,
-            format!("{:?}", tmp[iu].link_type),
+            Fr -> format!("{:?}", tmp[iu].link_type),
             tmp[iu].platform,
-            format!("{}\\{}", tmp[iu].link_hostname, tmp[iu].link_username),
+            FB -> format!("{}\\{}", tmp[iu].link_hostname, tmp[iu].link_username),
             tmp[iu].internal_ip,
-            tmp[iu].last_checkin,
-            format!("{:?}", tmp[iu].status),
+            Fc -> tmp[iu].last_checkin,
+            bFg -> format!("{:?}", tmp[iu].status),
         ]);
     }
     table.printstd();
