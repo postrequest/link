@@ -25,3 +25,4 @@ base64 = "0.13.0"
 obfstr = "0.3"
 openssl = { version = "0.10.32", features = ["vendored"] }
 whoami = "1.1.2"
+ifcfg = "0.1"

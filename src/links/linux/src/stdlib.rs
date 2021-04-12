@@ -183,21 +183,25 @@ fn cd(args: Vec<&str>) -> String {
 }
 
 fn internal_ip() -> String {
-    // thanks https://github.com/egmkang/local_ipaddress/
-    let non_routable = "127.0.0.1".to_string();
-    use std::net::UdpSocket;
-    let socket = match UdpSocket::bind("0.0.0.0:0") {
-        Ok(s) => s,
-        Err(_) => return non_routable,
-    };
-    match socket.connect("8.8.8.8:80") {
-        Ok(()) => (),
-        Err(_) => return non_routable,
-    };
-    match socket.local_addr() {
-        Ok(addr) => return addr.ip().to_string(),
-        Err(_) => return non_routable,
-    };
+    use ifcfg;
+    let mut iface_string = String::new();
+    let ifaces = ifcfg::IfCfg::get().expect("no if");
+    for inf in ifaces {
+        for addr in inf.addresses {
+            match addr.address_family {
+                ifcfg::AddressFamily::IPv4 => {
+                    let ip_raw = addr.address.unwrap().to_string();
+                    if iface_string.is_empty() {
+                        iface_string = format!("{}", ip_raw);
+                        continue;
+                    }
+                    iface_string = format!("{},{}", iface_string, ip_raw);
+                }
+                _ => (),
+            }
+        }
+    }
+    iface_string
 }
 
 fn pid() -> u32 {
