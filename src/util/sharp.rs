@@ -23,7 +23,7 @@ pub fn get_sharp_path(tool: String) -> String {
         }
         Ok(home) => home,
     };
-    let sharpcollection_path = format!("{}/.link/SharpCollection", home_dir);
+    let sharpcollection_path = format!("{}/.link/3rdparty/SharpCollection", home_dir);
     let net40_path = format!("{}/NetFramework_4.0_x64", sharpcollection_path);
     let net45_path = format!("{}/NetFramework_4.5_x64", sharpcollection_path);
     let net47_path = format!("{}/NetFramework_4.7_x64", sharpcollection_path);
@@ -145,7 +145,7 @@ fn update_sharpcollection() {
         Ok(home) => home,
     };
     let link_path = format!("{}/.link", home_dir);
-    let sharpcollection_path = format!("{}/SharpCollection", link_path);
+    let sharpcollection_path = format!("{}/3rdparty/SharpCollection", link_path);
     let prev_dir_path = std::env::current_dir().unwrap();
     if std::env::set_current_dir(sharpcollection_path).is_err() {
         println!("could not change directory");
@@ -176,13 +176,20 @@ fn download_sharpcollection() {
         Ok(home) => home,
     };
     let link_path = format!("{}/.link", home_dir);
-    let sharpcollection_path = format!("{}/SharpCollection", link_path);
+    let third_party_path = format!("{}/3rdparty", link_path);
+    let sharpcollection_path = format!("{}/3rdparty/SharpCollection", link_path);
     if fs::metadata(sharpcollection_path.as_str()).is_ok() {
         update_sharpcollection();
         return;
     }
+    match fs::create_dir_all(third_party_path.as_str()) {
+        Err(e) => {
+            println!("{}", e);
+        }
+        Ok(third) => third,
+    }
     let prev_dir_path = std::env::current_dir().unwrap();
-    if std::env::set_current_dir(link_path).is_err() {
+    if std::env::set_current_dir(third_party_path).is_err() {
         println!("could not change directory");
         return;
     }
