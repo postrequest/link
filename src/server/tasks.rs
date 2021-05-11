@@ -82,7 +82,7 @@ pub fn write_dump_exec_pypykatz(task_id: String, returned_data: &str) -> String 
 		return returned_data.to_string()
 	}
 	// write lsass.exe MiniDump to file
-	let dump_name = format!("{}-dump", task_id);
+	let dump_name = format!("{}-lsass-dump", task_id);
 	let dump_name_b64 = format!("{}.b64", dump_name.clone());
 	let dump_name_bin = format!("{}.bin", dump_name.clone());
 	let mut output_file = fs::File::create(&dump_name_b64.clone()).expect("could not write file");

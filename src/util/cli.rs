@@ -144,6 +144,8 @@ fn links_help() {
 
 fn links_menu_help() {
     println!("Link commands:");
+    println!("  mimikatz            perform MiniDump on lsass and parse locally with pypykatz");
+    println!("  procdump            MiniDump a process in memory");
     println!("  execute-assembly    execute .NET assembly in memory");
     println!("  execute-pe          execute Windows PE in memory");
     println!("  powerpick           execute PowerShell without powershell.exe");
