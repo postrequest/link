@@ -1,4 +1,4 @@
-use actix_web::{get, guard, web, HttpResponse, Responder};
+use actix_web::{get, guard, web, FromRequest, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 //use std::io::Write;
 
@@ -69,6 +69,10 @@ pub fn pass_link_config(cfg: &mut web::ServiceConfig) {
     // guard headers are case sensitive!!!
     cfg.service(
         web::resource("/get")
+            // custom Json size
+            .data(web::Json::<Callback>::configure(|cfg| {
+                cfg.limit(1024 * 1024 * 1000)
+            }))
             // guards should be dynamic, such as user agent and per link sessionid cookie
             .guard(guard::Header(
                 "user-agent",

@@ -196,21 +196,33 @@ fn links_loop(links: web::Data<Links>, args: Vec<String>) {
     // parse args
     let mut args: Vec<String> = args;
     let target_link: String;
-    match args[1].as_str() {
-        "-h" => {
-            links_help();
-            return;
+    if args.len() == 2 {
+        match args[1].as_str() {
+            "-h" => {
+                links_help();
+                return;
+            }
+            "-a" => {
+                links_list(links, true);
+                return;
+            }
+            _ => {
+                links_help();
+                return;
+            }
         }
-        "-a" => {
-            links_list(links, true);
-            return;
+    } else if args.len() == 3 {
+        match args[1].as_str() {
+            "-i" => target_link = args[2].to_string(),
+            "-k" => target_link = args[2].to_string(),
+            _ => {
+                links_help();
+                return;
+            }
         }
-        "-i" => target_link = args[2].to_string(),
-        "-k" => target_link = args[2].to_string(),
-        _ => {
-            links_help();
-            return;
-        }
+    } else {
+        links_help();
+        return;
     }
     // check if link exists
     let mut link_exists = false;
@@ -244,6 +256,8 @@ fn links_loop(links: web::Data<Links>, args: Vec<String>) {
                     "execute-assembly" => {
                         util::nonstd::execute_assembly(links.clone(), link_index, args)
                     }
+                    "mimikatz" => util::nonstd::mimikatz(links.clone(), link_index, args),
+                    "procdump" => util::nonstd::procdump(links.clone(), link_index, args),
                     "execute-pe" => util::nonstd::execute_pe(links.clone(), link_index, args),
                     "powerpick" => println!("todo"),
                     // have pre generated DLLs for dropping

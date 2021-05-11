@@ -1,7 +1,8 @@
 use std::fs;
-use std::ffi::{c_void, OsStr};
-use std::os::windows::ffi::OsStrExt;
+use std::ffi::c_void;
 use goblin::pe::PE;
+
+use crate::stdlib::get_wide;
 
 pub fn refresh_dlls() {
     // load dlls
@@ -94,8 +95,4 @@ pub fn refresh_dlls() {
         old_protect,
         &mut old_protect
     )};
-}
-
-fn get_wide(s: &str) -> Vec<u16> {
-    OsStr::new(s).encode_wide().chain(std::iter::once(0)).collect()
 }
