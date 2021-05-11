@@ -12,16 +12,17 @@ https://github.com/fdehau/tui-rs
 - make jitter and delay adjustable
 - add evasion PPID spoofer for windows
 - make use of evasion from https://github.com/f0rb1dd3n/Reptile for linux link
+- check this out https://github.com/gsfraley/dotrust
 
 [Link Modules]
 - add powershell modules from empire
     - all powershell modules should take advantage of xeca
 - https://github.com/PorLaCola25/TransactedSharpMiniDump for reference, also https://github.com/m0rv4i/SafetyDump
 - add https://github.com/deadjakk/RustPivot/
-- add https://github.com/RedCursorSecurityConsulting/PPLKiller
+- add https://github.com/itm4n/PPLdump
 
 [Compile obfuscation]
-User the following projects for implementation
+Use the following projects for implementation
 - https://github.com/tsarpaul/llvm-string-obfuscator
 - https://github.com/moloch--/denim
 
@@ -32,9 +33,10 @@ User the following projects for implementation
 - add autocompletion
 - add https://github.com/deadjakk/RustPivot/
 - accept dynamic hostnames
+- use a better encoding than base64 for binary to ascii transfer, such as yEnc ose Base85
 
 [Code]
 - clean up repetition
 
 [Build]
-- for kali 'apt install mono-mcs' for dynamic powershell scripts 
+- for kali 'apt install mono-mcs' for dynamic powershell scripts || https://github.com/mgeeky/Stracciatella/releases/latest/download/Stracciatella.exe
