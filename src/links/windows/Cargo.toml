@@ -29,5 +29,5 @@ webpki = "0.21.4"
 base64 = "0.13.0"
 goblin = "0.3"
 obfstr = "0.3"
-ifcfg = "0.1"
+ifcfg = { git = "https://github.com/postrequest/ifcfg-rs", branch = "cross-compilation-windows-dynamic" }
 sysinfo = "0.17"
