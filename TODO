@@ -7,6 +7,10 @@
 
 [TUI]
 https://github.com/fdehau/tui-rs
+https://github.com/ivanceras/titik
+
+[GUI]
+https://github.com/PistonDevelopers/conrod/
 
 [Link]
 - make jitter and delay adjustable
@@ -16,8 +20,7 @@ https://github.com/fdehau/tui-rs
 
 [Link Modules]
 - add powershell modules from empire
-    - all powershell modules should take advantage of xeca
-- https://github.com/PorLaCola25/TransactedSharpMiniDump for reference, also https://github.com/m0rv4i/SafetyDump
+- all powershell modules should take advantage of xeca
 - add https://github.com/deadjakk/RustPivot/
 - add https://github.com/itm4n/PPLdump
 

@@ -31,3 +31,4 @@ goblin = "0.3"
 obfstr = "0.3"
 ifcfg = { git = "https://github.com/postrequest/ifcfg-rs", branch = "cross-compilation-windows-dynamic" }
 sysinfo = "0.17"
+safetydump = { git = "https://github.com/postrequest/safetydump", branch = "main" }
