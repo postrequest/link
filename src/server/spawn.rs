@@ -1,11 +1,17 @@
 use actix_web::{dev::Server, web, App, HttpServer};
-use std::sync::{mpsc, Mutex};
-use std::thread;
+use std::{
+    path::Path,
+    process::exit,
+    sync::{mpsc, Mutex},
+    thread,
+};
 
 // internal packages
 use crate::routes;
 use crate::server;
+use crate::util;
 use server::links::Links;
+use util::cli::cli_line;
 
 pub async fn spawn_server(
     tx: &mpsc::Sender<Server>,
@@ -22,6 +28,18 @@ pub async fn spawn_server(
         stdout: Mutex::new(rx_command.recv().unwrap()),
     });
     let links = links_init.clone();
+    // check certificate path
+    let (key_path, cert_path) = if Path::new("cert").exists() { 
+        check_certs("cert".to_string())
+    } else {
+        let arg = cli_line("Please provide full path to folder with certificates (contains key.pem and cert.pem): ");
+        if Path::new(&arg[0]).exists() {
+            check_certs(arg[0].clone())
+        } else { 
+            exit(1);
+        }
+    };
+    
     thread::spawn(move || {
         // load links
         // load ssl
@@ -30,9 +48,9 @@ pub async fn spawn_server(
             openssl::ssl::SslAcceptor::mozilla_intermediate(openssl::ssl::SslMethod::tls())
                 .unwrap();
         builder
-            .set_private_key_file("cert/key.pem", openssl::ssl::SslFiletype::PEM)
+            .set_private_key_file(&key_path, openssl::ssl::SslFiletype::PEM)
             .unwrap();
-        builder.set_certificate_chain_file("cert/cert.pem").unwrap();
+        builder.set_certificate_chain_file(&cert_path).unwrap();
         // web server
         let sys = actix_web::rt::System::new("protocol-web-server");
         let pre_srv = HttpServer::new(move || {
@@ -66,4 +84,15 @@ pub async fn spawn_server(
         sys.run()
     });
     links_init
+}
+
+fn check_certs(cert_dir: String) -> (String, String) { 
+    // check for key.pem and cert.pem
+    let key_path = format!("{}/key.pem", &cert_dir);
+    let cert_path = format!("{}/cert.pem", &cert_dir);
+    if !Path::new(&key_path).exists() || !Path::new(&cert_path).exists() {
+        println!("Certificate directory \"{}\" does not contain key.pem or cert.pem", &cert_dir);
+        exit(1);
+    }
+    (key_path, cert_path)
 }
