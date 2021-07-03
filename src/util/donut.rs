@@ -58,19 +58,14 @@ pub fn create_shellcode(executable_path: String, parameters: Vec<String>) -> Opt
     let donut_path = format!("{}/3rdparty/donut", link_path);
 
     // generate payload
-    println!("Generating shellcode");
     if parameters.len() > 0 {
         let params = parameters.join(",");
-        println!("{:?}", params);
         let output = Command::new(&donut_path)
             .args(&["-a", "2", "-p", &params, "-f", &executable_path])
             .output();
         match output {
             Err(_) => println!("could not generate"),
-            Ok(output) => { println!("{}{}", 
-                String::from_utf8(output.stdout).unwrap(), 
-                String::from_utf8(output.stderr).unwrap())
-            },
+            Ok(_) => {},
         }
     } else {
         let output = std::process::Command::new(&donut_path)
@@ -78,10 +73,7 @@ pub fn create_shellcode(executable_path: String, parameters: Vec<String>) -> Opt
             .output();
         match output {
             Err(_) => println!("could not generate"),
-            Ok(output) => { println!("{}{}", 
-                String::from_utf8(output.stdout).unwrap(), 
-                String::from_utf8(output.stderr).unwrap())
-            },
+            Ok(_) => {},
         }
     }
     let shellcode = match std::fs::read("payload.bin") {
