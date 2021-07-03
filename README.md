@@ -36,15 +36,13 @@
 
 link provides MacOS, Linux and Windows implants which may lack the necessary evasive tradecraft provided by other more mature command and control frameworks.
 
-**Tested on Linux only.**
-
 ## Features
 
 Hopefully this list expands for humans to actually want to use this:
 
 * HTTPS communication
 * Process injection
-* In-memory .NET assembly execution
+* In-memory .NET assembly amd Windows PE execution
 * SharpCollection tools
 * sRDI implementation for shellcode generation
 * Windows link reloads DLLs from disk into current process
