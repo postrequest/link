@@ -7,7 +7,7 @@ use crate::server;
 use crate::util;
 
 pub fn sharp_link(links: web::Data<Links>, link_index: usize, command: Vec<String>) {
-    if command.len() < 2 {
+    if command.len() < 3 {
         sharp_link_help();
         return;
     }
@@ -298,6 +298,6 @@ pub fn sharp_link_help() {
     println!("  sharp Watson                      Enumerate missing KBs and suggest exploits for useful Privilege Escalation vulnerabilities . @rasta-mouse");
     println!("  sharp winPEAS                     PEASS Privilege Escalation Awesome Scripts (winPEAS). @carlospolop");
     println!("  sharp WMIReg                      C# PoC to interact with local/remote registry hives through WMI. @airzero24");
-    println!("\n  sharp <tool> <parameters>");
-    println!("    eg: sharp SharpKatz --Command logonpasswords");
+    println!("\n  sharp <process> <tool> <parameters>");
+    println!("    eg: sharp svchost SharpKatz --Command logonpasswords");
 }

@@ -68,10 +68,22 @@ pub fn execute_shellcode(links: web::Data<Links>, link_index: usize, command: Ve
         .set_command(updated_command.join(" "), command.join(" "));
 }
 
-pub fn execute_assembly(links: web::Data<Links>, link_index: usize, command: Vec<String>) {
+pub fn execute_assembly(links: web::Data<Links>, link_index: usize, mut command: Vec<String>) {
     if command.len() < 3 {
         println!("execute-assembly <process> <path-to-assewmbly> <optional parameters>\n   eg: execute-assembly svchost SharpKatz.exe -h");
         return;
+    }
+    // check for SharpCollection
+    let mut sharpcollection_tool = String::new();
+    if command[0] == *"sharp" {
+        sharpcollection_tool = command[2].clone();
+        let tool_path = util::sharp::get_sharp_path(command[2].clone());
+        if tool_path.is_empty() {
+            println!("could not find tool, at the main menu the following command may help:");
+            println!("sharp init");
+            return;
+        }
+        command[2] = tool_path;
     }
     let parameters: Vec<String>;
     if command.len() > 3 {
@@ -86,6 +98,10 @@ pub fn execute_assembly(links: web::Data<Links>, link_index: usize, command: Vec
             return;
         },
     };
+    // update original command if SharpCollection
+    if !sharpcollection_tool.is_empty() {
+        command[2] = sharpcollection_tool;
+    }
     let updated_command = vec![
         "execute-shellcode".to_string(),
         command[1].clone(),
