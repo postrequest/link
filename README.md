@@ -42,7 +42,7 @@ Hopefully this list expands for humans to actually want to use this:
 
 * HTTPS communication
 * Process injection
-* In-memory .NET assembly amd Windows PE execution
+* In-memory .NET assembly and Windows PE execution
 * SharpCollection tools
 * sRDI implementation for shellcode generation
 * Windows link reloads DLLs from disk into current process
